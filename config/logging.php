@@ -58,7 +58,7 @@ return [
             'url' => env('LOG_SLACK_WEBHOOK_URL'),
             'username' => env('APP_NAME'),
             'emoji' => ':boom:',
-            'level' => 'debug',
+            'level' => env('LOG_LEVEL'),
         ],
 
         'papertrail' => [
