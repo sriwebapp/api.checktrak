@@ -14,7 +14,7 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password',
+        'name', 'email', 'password', 'group_id'
     ];
 
     protected $hidden = [
@@ -75,5 +75,14 @@ class User extends Authenticatable
         if ( ! $modules->count() ) $modules = $this->modules;
 
         return $modules;
+    }
+
+    public function access()
+    {
+        $this->branch = $this->getBranches()->pluck('code');
+        $this->action = $this->getActions()->pluck('code');
+        $this->module = $this->getModules()->pluck('code');
+
+        return $this;
     }
 }

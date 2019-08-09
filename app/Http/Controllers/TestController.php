@@ -9,15 +9,17 @@ use Illuminate\Http\Request;
 
 class TestController extends Controller
 {
+    protected $module;
+
+    public function __construct()
+    {
+        $this->module = Module::where('code', 'usr')->first();
+    }
+
     public function index(Request $request)
     {
         $user = User::findOrFail($request->get('id'));
 
-        $user->branch = $user->getBranches()->pluck('code');
-        $user->action = $user->getActions()->pluck('code');
-        $user->module = $user->getModules()->pluck('code');
-        // $user->branch = $user->getBranches();
-
-        return $user;
+        return $user->access();
     }
 }

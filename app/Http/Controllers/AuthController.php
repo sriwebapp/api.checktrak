@@ -54,11 +54,6 @@ class AuthController extends Controller
 
     public function user()
     {
-        $user = Auth::user();
-        $user->branch = $user->getBranches()->pluck('code');
-        $user->action = $user->getActions()->pluck('code');
-        $user->module = $user->getModules()->pluck('code');
-
-        return $user;
+        return Auth::user()->access();
     }
 }

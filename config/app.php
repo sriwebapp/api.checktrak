@@ -55,6 +55,8 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
     'ui_url' => env('UI_URL', 'http://localhost'),
 
+    'default_pass' => env('APP_DEFAULT_PASS', 'password'),
+
     'asset_url' => env('ASSET_URL', null),
 
     /*
