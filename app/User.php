@@ -39,4 +39,41 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Branch::class, 'user_branch', 'user_id');
     }
+
+    public function actions()
+    {
+        return $this->belongsToMany(Action::class, 'user_action', 'user_id');
+    }
+
+    public function modules()
+    {
+        return $this->belongsToMany(Module::class, 'user_module', 'user_id');
+    }
+
+    public function getBranches()
+    {
+        $branches = $this->group->branches;
+
+        if ( ! $branches->count() ) $branches = $this->branches;
+
+        return $branches;
+    }
+
+    public function getActions()
+    {
+        $actions = $this->group->actions;
+
+        if ( ! $actions->count() ) $actions = $this->actions;
+
+        return $actions;
+    }
+
+    public function getModules()
+    {
+        $modules = $this->group->modules;
+
+        if ( ! $modules->count() ) $modules = $this->modules;
+
+        return $modules;
+    }
 }

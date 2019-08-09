@@ -17,4 +17,14 @@ class Group extends Model
     {
         return $this->belongsToMany(Branch::class, 'group_branch', 'group_id');
     }
+
+    public function actions()
+    {
+        return $this->belongsToMany(Action::class, 'group_action', 'group_id');
+    }
+
+    public function modules()
+    {
+        return $this->belongsToMany(Module::class, 'group_module', 'group_id');
+    }
 }
