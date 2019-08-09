@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserGroupActionTable extends Migration
+class CreateGroupModuleTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,14 @@ class CreateUserGroupActionTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_group_action', function (Blueprint $table) {
+        Schema::create('group_module', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('user_group_id');
-            $table->unsignedBigInteger('action_id');
+            $table->unsignedBigInteger('group_id');
+            $table->unsignedBigInteger('module_id');
             $table->timestamps();
 
-            $table->foreign('user_group_id')->references('id')->on('user_groups');
-            $table->foreign('action_id')->references('id')->on('actions');
+            $table->foreign('group_id')->references('id')->on('groups');
+            $table->foreign('module_id')->references('id')->on('modules');
         });
     }
 
@@ -31,6 +31,6 @@ class CreateUserGroupActionTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_group_action');
+        Schema::dropIfExists('group_module');
     }
 }

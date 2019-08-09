@@ -3,7 +3,7 @@
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class UserGroup extends Seeder
+class Group extends Seeder
 {
     /**
      * Run the database seeds.
@@ -12,7 +12,7 @@ class UserGroup extends Seeder
      */
     public function run()
     {
-        DB::table('user_groups')->insert([
+        DB::table('groups')->insert([
             ['name' => 'System Admin'],
             ['name' => 'Administrator'],
             ['name' => 'Head Office'],

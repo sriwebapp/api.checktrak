@@ -30,6 +30,8 @@ class AuthServiceProvider extends ServiceProvider
             $router->forAccessTokens();
         });
 
-        Passport::tokensExpireIn(now()->addDays(1));
+        if ( config('app.env') === 'production' ) {
+            Passport::tokensExpireIn(now()->addDays(1));
+        }
     }
 }

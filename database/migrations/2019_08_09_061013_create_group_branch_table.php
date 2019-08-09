@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUsersTable extends Migration
+class CreateGroupBranchTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,17 +13,14 @@ class CreateUsersTable extends Migration
      */
     public function up()
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('group_branch', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->string('password');
-            $table->boolean('active')->default(1);
             $table->unsignedBigInteger('group_id');
-            $table->rememberToken();
+            $table->unsignedBigInteger('branch_id');
             $table->timestamps();
 
-            // $table->foreign('group_id')->references('id')->on('user_groups')->onDelete('cascade');
+            $table->foreign('group_id')->references('id')->on('groups');
+            $table->foreign('branch_id')->references('id')->on('branches');
         });
     }
 
@@ -34,6 +31,6 @@ class CreateUsersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('group_branch');
     }
 }

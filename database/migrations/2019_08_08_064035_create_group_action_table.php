@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateCheckActionTable extends Migration
+class CreateGroupActionTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,16 +13,14 @@ class CreateCheckActionTable extends Migration
      */
     public function up()
     {
-        Schema::create('check_action', function (Blueprint $table) {
+        Schema::create('group_action', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('check_id');
+            $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('action_id');
-            $table->unsignedBigInteger('user_id');
             $table->timestamps();
 
-            $table->foreign('check_id')->references('id')->on('checks');
+            $table->foreign('group_id')->references('id')->on('groups');
             $table->foreign('action_id')->references('id')->on('actions');
-            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
@@ -33,6 +31,6 @@ class CreateCheckActionTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('check_action');
+        Schema::dropIfExists('group_action');
     }
 }

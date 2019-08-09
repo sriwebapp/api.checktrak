@@ -12,4 +12,9 @@ class Branch extends Model
     {
         return $this->belongsTo(User::class, 'incharge');
     }
+
+    static function active()
+    {
+        return Branch::where('active', 1)->get();
+    }
 }

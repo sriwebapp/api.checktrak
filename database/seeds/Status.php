@@ -3,7 +3,7 @@
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class CheckStatus extends Seeder
+class Status extends Seeder
 {
     /**
      * Run the database seeds.
