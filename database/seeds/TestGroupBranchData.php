@@ -8,12 +8,8 @@ class TestGroupBranchData extends Seeder
 {
     public function run()
     {
-        $admins = Group::whereIn('id', [1, 2, 3])->get();
+        $admin = Group::where('id', 3)->first();
 
-        $branches = Branch::get();
-
-        $admins->map( function($admin) use ($branches) {
-            return $admin->branches()->sync($branches);
-        });
+        $admin->branches()->sync(Branch::get());
     }
 }

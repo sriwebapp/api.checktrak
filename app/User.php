@@ -52,29 +52,23 @@ class User extends Authenticatable
 
     public function getBranches()
     {
-        $branches = $this->group->branches;
-
-        if ( ! $branches->count() ) $branches = $this->branches;
-
-        return $branches;
+        return $this->group->branch ?
+            $this->group->getBranches() :
+            $this->branches;
     }
 
     public function getActions()
     {
-        $actions = $this->group->actions;
-
-        if ( ! $actions->count() ) $actions = $this->actions;
-
-        return $actions;
+        return $this->group->action ?
+            $this->group->getActions() :
+            $this->actions;
     }
 
     public function getModules()
     {
-        $modules = $this->group->modules;
-
-        if ( ! $modules->count() ) $modules = $this->modules;
-
-        return $modules;
+        return $this->group->module ?
+            $this->group->getModules() :
+            $this->modules;
     }
 
     public function access()

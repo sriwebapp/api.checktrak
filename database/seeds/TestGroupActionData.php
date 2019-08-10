@@ -13,20 +13,12 @@ class TestGroupActionData extends Seeder
      */
     public function run()
     {
-        $admins = Group::whereIn('id', [1, 2])->get();
-        $head = Group::where('id', 3)->get();
-        $branch = Group::where('id', 4)->get();
+        $admin = Group::where('id', 2)->first();
+        $head = Group::where('id', 3)->first();
+        $branch = Group::where('id', 4)->first();
 
-        $admins->map( function($admin) {
-            return $admin->actions()->sync( Action::all() );
-        });
-
-        $head->map( function($user) {
-            return $user->actions()->sync( Action::where('id', '<>', 5)->get() );
-        });
-
-        $branch->map( function($user) {
-            return $user->actions()->sync( Action::whereIn('id', [3, 4, 5])->get() );
-        });
+        $admin->actions()->sync(Action::all());
+        $head->actions()->sync(Action::where('id', '<>', 5)->get());
+        $branch->actions()->sync(Action::whereIn('id', [3, 4, 5])->get());
     }
 }

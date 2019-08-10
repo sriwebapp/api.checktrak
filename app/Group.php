@@ -27,4 +27,31 @@ class Group extends Model
     {
         return $this->belongsToMany(Module::class, 'group_module', 'group_id');
     }
+
+    public function getBranches()
+    {
+        if ( $this->branch === 2 ) {
+            return Branch::get();
+        } elseif ( $this->branch === 1 ) {
+            return $this->branches;
+        }
+    }
+
+    public function getActions()
+    {
+        if ( $this->action === 2 ) {
+            return Action::get();
+        } elseif ( $this->action === 1 ) {
+            return $this->actions;
+        }
+    }
+
+    public function getModules()
+    {
+        if ( $this->module === 2 ) {
+            return Module::get();
+        } elseif ( $this->module === 1 ) {
+            return $this->modules;
+        }
+    }
 }
