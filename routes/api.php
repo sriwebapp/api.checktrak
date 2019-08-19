@@ -25,4 +25,8 @@ Route::middleware(['auth:api'])->group(function() {
     Route::apiResource('/user', 'UserController');
     Route::apiResource('/company', 'CompanyController');
     Route::apiResource('/branch', 'BranchController');
+
+    Route::prefix('/{company}')->group( function() {
+        Route::apiResource('/account', 'AccountController');
+    });
 });

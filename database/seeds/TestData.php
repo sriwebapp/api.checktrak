@@ -20,5 +20,6 @@ class TestData extends Seeder
         $this->call(TestGroupActionData::class);
         $this->call(TestUserActionData::class);
         $this->call(TestCompanyData::class);
+        $this->call(TestAccountData::class);
     }
 }
