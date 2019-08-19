@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\Action;
+use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
 
@@ -16,10 +17,12 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Request $request)
+    public function index(Branch $branch, Request $request)
     {
-        $user = User::findOrFail($request->get('id'));
+        return $branch->inCharge;
 
-        return $user->access();
+        // $user = User::findOrFail($request->get('id'));
+
+        // return $user->access();
     }
 }

@@ -17,11 +17,11 @@ class CreateBranchesTable extends Migration
             $table->bigIncrements('id');
             $table->string('code', 10)->unique();
             $table->string('name');
-            $table->unsignedBigInteger('incharge');
+            $table->unsignedBigInteger('incharge_id');
             $table->boolean('active')->default(1);
             $table->timestamps();
 
-            $table->foreign('incharge')->references('id')->on('users');
+            $table->foreign('incharge_id')->references('id')->on('users');
         });
     }
 

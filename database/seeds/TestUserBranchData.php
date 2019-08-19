@@ -16,7 +16,7 @@ class TestUserBranchData extends Seeder
         $users = User::whereNotIn('group_id', [1, 2, 3])->get();
 
         $users->map( function ( $user ) {
-            $branches = Branch::where('incharge', $user->id)->get();
+            $branches = Branch::where('incharge_id', $user->id)->get();
 
             if ( ! $branches->count() ) {
                 $branches = Branch::whereIn('id', [2, 4, 5])->get();
