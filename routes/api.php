@@ -23,4 +23,5 @@ Route::middleware(['auth:api'])->group(function() {
     Route::get('/auth', 'AuthController@user');
 
     Route::apiResource('/user', 'UserController');
+    Route::apiResource('/company', 'CompanyController');
 });

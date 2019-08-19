@@ -61,7 +61,7 @@ class UserController extends Controller
         return ['message' => 'User successfully updated.'];
     }
 
-    public function destroy($id)
+    public function destroy(User $user)
     {
         abort(403);
     }
