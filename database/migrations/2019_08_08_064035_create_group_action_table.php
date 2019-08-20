@@ -17,7 +17,7 @@ class CreateGroupActionTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('action_id');
-            $table->timestamps();
+            // $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups');
             $table->foreign('action_id')->references('id')->on('actions');

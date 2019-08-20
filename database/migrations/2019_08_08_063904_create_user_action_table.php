@@ -17,7 +17,7 @@ class CreateUserActionTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('action_id');
-            $table->timestamps();
+            // $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('action_id')->references('id')->on('actions');

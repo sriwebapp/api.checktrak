@@ -17,7 +17,7 @@ class CreateGroupBranchTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('branch_id');
-            $table->timestamps();
+            // $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups');
             $table->foreign('branch_id')->references('id')->on('branches');

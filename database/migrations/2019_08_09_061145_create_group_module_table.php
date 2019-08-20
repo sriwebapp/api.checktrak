@@ -17,7 +17,7 @@ class CreateGroupModuleTable extends Migration
             $table->bigIncrements('id');
             $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('module_id');
-            $table->timestamps();
+            // $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups');
             $table->foreign('module_id')->references('id')->on('modules');

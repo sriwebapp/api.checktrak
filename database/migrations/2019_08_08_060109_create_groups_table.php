@@ -20,7 +20,7 @@ class CreateGroupsTable extends Migration
             $table->tinyInteger('action')->default(1);
             $table->tinyInteger('branch')->default(1);
             $table->tinyInteger('module')->default(1);
-            // $table->timestamps();
+            $table->timestamps();
         });
 
         Schema::table('users', function (Blueprint $table) {
