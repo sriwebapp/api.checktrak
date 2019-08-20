@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Group;
+use App\Action;
+use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
 
@@ -53,10 +56,9 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:191',
             'email' => 'required|string|email|max:191|unique:users,email,' . $user->id,
-            'group_id' => 'required|integer|exists:groups,id',
         ]);
 
-        $user->update($request->all());
+        $user->update($request->only('name', 'email'));
 
         return ['message' => 'User successfully updated.'];
     }
@@ -64,5 +66,26 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         abort(403);
+    }
+
+    public function access(Request $request, User $user)
+    {
+        $this->authorize('module', $this->module);
+
+        $request->validate(['group_id' => 'required|integer|exists:groups,id']);
+
+        $group = Group::find($request->get('group_id'));
+
+        $group->users()->save($user);
+
+        $actions = ! $group->action ? Action::whereIn('code', $request->get('actions'))->get() : [];
+        $branches = ! $group->branch ? Branch::whereIn('code', $request->get('branches'))->get() : [];
+        $modules = ! $group->module ? Module::whereIn('code', $request->get('modules'))->get() : [];
+
+        $user->actions()->sync($actions);
+        $user->branches()->sync($branches);
+        $user->modules()->sync($modules);
+
+        return $user->access();
     }
 }

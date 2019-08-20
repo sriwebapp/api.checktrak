@@ -21,7 +21,7 @@ class TestGroupModuleData extends Seeder
         });
 
         $users->map( function($user) {
-            return $user->modules()->sync( Module::whereId(5)->get() );
+            return $user->modules()->sync( Module::whereId(6)->get() );
         });
     }
 }

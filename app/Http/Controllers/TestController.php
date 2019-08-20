@@ -17,12 +17,12 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Branch $branch, Request $request)
+    public function index(Request $request)
     {
-        return $branch->inCharge;
+        // return $branch->inCharge;
 
-        // $user = User::findOrFail($request->get('id'));
+        $user = User::findOrFail($request->get('id'));
 
-        // return $user->access();
+        return $user->access();
     }
 }

@@ -8,13 +8,13 @@ use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
 
-class GroupAccessController extends Controller
+class GroupController extends Controller
 {
     protected $module;
 
     public function __construct()
     {
-        $this->module = Module::where('code', 'acs')->first();
+        $this->module = Module::where('code', 'grp')->first();
     }
 
     public function index()
