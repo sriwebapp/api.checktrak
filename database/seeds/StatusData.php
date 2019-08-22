@@ -1,7 +1,7 @@
 <?php
 
-use App\Status;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class StatusData extends Seeder
 {
@@ -12,7 +12,7 @@ class StatusData extends Seeder
      */
     public function run()
     {
-        Status::insert([
+        DB::table('status')->insert([
             ['name' => 'Created'],
             ['name' => 'Transmitted'],
             ['name' => 'Claimed'],

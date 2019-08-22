@@ -22,5 +22,6 @@ class TestData extends Seeder
         $this->call(TestCompanyData::class);
         $this->call(TestAccountData::class);
         $this->call(TestPayeeData::class);
+        $this->call(TestCheckData::class);
     }
 }
