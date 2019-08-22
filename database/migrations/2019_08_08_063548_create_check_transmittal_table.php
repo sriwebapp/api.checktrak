@@ -19,7 +19,7 @@ class CreateCheckTransmittalTable extends Migration
             $table->unsignedBigInteger('transmittal_id');
             $table->timestamps();
 
-            $table->foreign('check_id')->references('id')->on('checks');
+            $table->foreign('check_id')->references('id')->on('checks')->onDelete('cascade');
             $table->foreign('transmittal_id')->references('id')->on('transmittals');
         });
     }
