@@ -8,8 +8,18 @@ class Company extends Model
 {
     protected $guarded = [];
 
+    public function getRouteKeyName()
+    {
+        return 'code';
+    }
+
     public function accounts()
     {
         return $this->hasMany(Account::class);
+    }
+
+    public function payees()
+    {
+        return $this->hasMany(Payee::class);
     }
 }

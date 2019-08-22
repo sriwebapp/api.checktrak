@@ -16,11 +16,16 @@ class CreatePayeesTable extends Migration
         Schema::create('payees', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('code', 20);
             $table->string('desc');
+            $table->unsignedBigInteger('company_id')->nullable();
             $table->unsignedBigInteger('payee_group_id')->nullable();
             $table->timestamps();
 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('payee_group_id')->references('id')->on('payee_groups');
+
+            $table->unique(['code', 'company_id']);
         });
 
         Schema::table('checks', function (Blueprint $table) {

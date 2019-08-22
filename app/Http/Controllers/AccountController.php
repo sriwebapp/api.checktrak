@@ -88,7 +88,6 @@ class AccountController extends Controller
         $bank = strtoupper($request->get('bank'));
 
         $account->update([
-            'company_id' => $company->id,
             'bank' => $bank,
             'code' => $bank . '-' . substr($request->get('number'), -2),
             'number' => $request->get('number'),

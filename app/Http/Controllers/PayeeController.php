@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Payee;
 use App\Module;
+use App\Company;
 use Illuminate\Http\Request;
 
 class PayeeController extends Controller
@@ -15,67 +16,71 @@ class PayeeController extends Controller
         $this->module = Module::where('code', 'pye')->first();
     }
 
-    public function index()
+    public function index(Company $company)
     {
         $this->authorize('module', $this->module);
 
-        return Payee::with('group')->get();
+        return $company->payees()->with('group')->get();
     }
 
-    public function store(Request $request)
+    public function store(Request $request, Company $company)
     {
         $this->authorize('module', $this->module);
 
         $request->validate([
             'name' => 'required|max:191',
+            'code' => 'required|max:20',
             'desc' => 'required|max:191',
             'payee_group_id' => 'required|integer|exists:payee_groups,id',
         ]);
 
-        Payee::create($request->only(['name', 'desc', 'payee_group_id']));
+        Payee::create([
+            'name' => $request->get('name'),
+            'code' => $request->get('code'),
+            'desc' => $request->get('desc'),
+            'company_id' => $company->id,
+            'payee_group_id' => $request->get('payee_group_id'),
+        ]);
 
         return ['message' => 'Payee successfully recorded.'];
     }
 
-    public function show(Payee $payee)
+    public function show(Company $company, Payee $payee)
     {
         $this->authorize('module', $this->module);
+
+        abort_unless($payee->company_id === $company->id, 404, 'Not Found');
 
         $payee->group;
 
         return $payee;
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Payee $payee)
+    public function update(Request $request, Company $company, Payee $payee)
     {
         $this->authorize('module', $this->module);
 
+        abort_unless($payee->company_id === $company->id, 403, 'Unauthorized');
+
         $request->validate([
             'name' => 'required|max:191',
+            'code' => 'required|max:20',
             'desc' => 'required|max:191',
             'payee_group_id' => 'required|integer|exists:payee_groups,id',
         ]);
 
-        $payee->update($request->only(['name', 'desc', 'payee_group_id']));
+        $payee->update([
+            'name' => $request->get('name'),
+            'code' => $request->get('code'),
+            'desc' => $request->get('desc'),
+            'payee_group_id' => $request->get('payee_group_id'),
+        ]);
 
         return ['message' => 'Payee successfully updated .'];
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
-        //
+        abort(403);
     }
 }

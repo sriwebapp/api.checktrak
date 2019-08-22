@@ -12,6 +12,6 @@ class TestPayeeData extends Seeder
      */
     public function run()
     {
-        factory(Payee::class, 50)->create();
+        factory(Payee::class, 100)->create();
     }
 }
