@@ -24,7 +24,7 @@ class CreateChecksTable extends Migration
             $table->date('date');
             $table->timestamps();
 
-            $table->foreign('status_id')->references('id')->on('statuses');
+            $table->foreign('status_id')->references('id')->on('status');
             $table->foreign('account_id')->references('id')->on('accounts');
             // $table->foreign('payee_id')->references('id')->on('payees');
         });

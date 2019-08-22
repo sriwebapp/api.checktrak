@@ -20,7 +20,7 @@ class CreateCheckHistoryTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->timestamps();
 
-            $table->foreign('check_id')->references('id')->on('checks')->onDelete('cascade');
+            $table->foreign('check_id')->references('id')->on('checks');
             $table->foreign('action_id')->references('id')->on('actions');
             $table->foreign('user_id')->references('id')->on('users');
         });

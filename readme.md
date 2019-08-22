@@ -16,8 +16,3 @@
 -   Account Management
 -   Payee Management
 -   Check Management
-
-### Todos Later
-
--   Group policy to block editing higher groups
--   Validation for two rows unique
