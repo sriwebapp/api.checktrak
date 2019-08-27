@@ -16,6 +16,7 @@ class CreateChecksTable extends Migration
         Schema::create('checks', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('status_id');
+            $table->unsignedBigInteger('company_id');
             $table->unsignedBigInteger('account_id');
             $table->unsignedBigInteger('payee_id');
             $table->boolean('received')->default(1);
@@ -24,6 +25,7 @@ class CreateChecksTable extends Migration
             $table->date('date');
             $table->timestamps();
 
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('status_id')->references('id')->on('statuses');
             $table->foreign('account_id')->references('id')->on('accounts');
             // $table->foreign('payee_id')->references('id')->on('payees');

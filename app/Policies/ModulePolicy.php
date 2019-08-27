@@ -12,6 +12,6 @@ class ModulePolicy
 
     public function module(User $user, Module $module)
     {
-        return $user->getModules()->where('code', $module->code)->count();;
+        return $user->getModules()->where('code', $module->code)->count();
     }
 }

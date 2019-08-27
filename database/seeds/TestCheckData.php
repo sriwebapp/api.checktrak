@@ -18,6 +18,7 @@ class TestCheckData extends Seeder
             for ($i=0; $i < 20; $i++) {
                 Check::insert([
                     'status_id' => $status->random(),
+                    'company_id' => $company->id,
                     'account_id' => $accounts->random(),
                     'payee_id' => $accounts->random(),
                     'received' => rand(0 ,1),

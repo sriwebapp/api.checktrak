@@ -36,6 +36,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::prefix('/check')->group( function() {
             Route::get('/', 'CheckController@index');
             Route::post('/create', 'CheckController@create');
+            Route::post('/transmit', 'CheckController@transmit');
             Route::get('/{check}', 'CheckController@show');
         });
     });

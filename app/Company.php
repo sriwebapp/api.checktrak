@@ -22,4 +22,9 @@ class Company extends Model
     {
         return $this->hasMany(Payee::class);
     }
+
+    public function checks()
+    {
+        return $this->hasMany(Check::class);
+    }
 }

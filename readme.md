@@ -20,4 +20,4 @@
 ### Todos Later
 
 -   Group policy to block editing higher groups
--   Validation for two rows unique
+-   Validation for two rows unique (payee, )

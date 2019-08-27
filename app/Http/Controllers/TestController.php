@@ -23,6 +23,6 @@ class TestController extends Controller
 
         $user = User::findOrFail($request->get('id'));
 
-        return $user->access();
+        return $user->getActions()->where('code', 'crts')->count();
     }
 }

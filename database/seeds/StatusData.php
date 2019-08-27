@@ -12,7 +12,7 @@ class StatusData extends Seeder
      */
     public function run()
     {
-        DB::table('status')->insert([
+        DB::table('statuses')->insert([
             ['name' => 'Created'],
             ['name' => 'Transmitted'],
             ['name' => 'Claimed'],

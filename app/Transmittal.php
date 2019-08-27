@@ -6,5 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transmittal extends Model
 {
-    //
+    protected $guarded = [];
+
+    public function checks()
+    {
+        return $this->belongsToMany(Check::class);
+    }
 }
