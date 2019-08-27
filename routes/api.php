@@ -32,7 +32,12 @@ Route::middleware(['auth:api'])->group(function() {
     Route::prefix('/{company}')->group( function() {
         Route::apiResource('/payee', 'PayeeController');
         Route::apiResource('/account', 'AccountController');
-        Route::apiResource('/check', 'CheckController');
+
+        Route::prefix('/check')->group( function() {
+            Route::get('/', 'CheckController@index');
+            Route::post('/create', 'CheckController@create');
+            Route::get('/{check}', 'CheckController@show');
+        });
     });
 
     Route::prefix('/tools')->group( function() {

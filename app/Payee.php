@@ -17,4 +17,9 @@ class Payee extends Model
     {
         return $this->belongsTo(PayeeGroup::class, 'payee_group_id');
     }
+
+    public function checks()
+    {
+        return $this->hasMany(Check::class);
+    }
 }

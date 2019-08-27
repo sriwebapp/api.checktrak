@@ -12,4 +12,9 @@ class Account extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function checks()
+    {
+        return $this->hasMany(Check::class);
+    }
 }

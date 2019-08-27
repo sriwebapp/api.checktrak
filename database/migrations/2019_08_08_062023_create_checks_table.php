@@ -20,7 +20,7 @@ class CreateChecksTable extends Migration
             $table->unsignedBigInteger('payee_id');
             $table->boolean('received')->default(1);
             $table->decimal('amount', 20, 2);
-            $table->string('details');
+            $table->string('details')->nullable();
             $table->date('date');
             $table->timestamps();
 
