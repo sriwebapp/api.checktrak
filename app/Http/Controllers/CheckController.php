@@ -145,6 +145,44 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully cleared.'];
     }
 
+    public function return(Request $request, Company $company)
+    {
+        $request->validate(['checks' => 'required|array']);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
+
+        $this->authorize('return', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) {
+            $check->update([ 'status_id' => 4, 'received' => 0 ]); // returned
+
+            $this->recordLog($check, 'rtn');
+        });
+
+        return ['message' => 'Checks successfully returned.'];
+    }
+
+    public function cancel(Request $request, Company $company)
+    {
+        $request->validate(['checks' => 'required|array']);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
+
+        $this->authorize('cancel', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) {
+            $check->update([ 'status_id' => 5]); // cancelled
+
+            $this->recordLog($check, 'cnl');
+        });
+
+        return ['message' => 'Checks cancelled.'];
+    }
+
     public function show(Company $company, Check $check)
     {
         abort_unless($check->company_id === $company->id, 404, 'Not Found');

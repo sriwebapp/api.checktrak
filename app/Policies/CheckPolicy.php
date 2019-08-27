@@ -68,4 +68,32 @@ class CheckPolicy
 
         return $clearable && $accessible;
     }
+
+    public function return(User $user, Company $company, Collection $checks)
+    {
+        $returnable = $checks->every( function($check) use ($company, $user) {
+            return $check->company == $company
+                && $user->getBranches()->where('id', $check->branch()->id )->count()
+                && $check->received
+                && $check->status_id === 2; /*transmitted*/
+        });
+
+        $accessible = $user->getActions()->where('code', 'rtn')->count();
+
+        return $accessible && $returnable;
+    }
+
+    public function cancel(User $user, Company $company, Collection $checks)
+    {
+        $returnable = $checks->every( function($check) use ($company, $user) {
+            return $check->company == $company
+                && $user->getBranches()->where('id', $check->branch()->id )->count()
+                && $check->received
+                && in_array($check->status_id, [1, 4]); /*created, returned*/
+        });
+
+        $accessible = $user->getActions()->where('code', 'cnl')->count();
+
+        return $accessible && $returnable;
+    }
 }
