@@ -21,7 +21,7 @@ class CheckPolicy
     {
         $transmittable = $checks->every( function($check) use ($company) {
             return $check->company == $company
-                && in_array($check->status_id, [1/*created*/, 4/*returned*/]);
+                && in_array($check->status_id, [1, 4]); /*created, returned*/
         });
 
         $accessible = $user->getActions()->where('code', 'trm')->count();
@@ -34,7 +34,7 @@ class CheckPolicy
         $receivable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
                 && ! $check->received
-                && $user->getBranches()->where('id', $check->transmittals->reverse()->first()->branch->id )->count();
+                && $user->getBranches()->where('id', $check->branch()->id )->count();
         });
 
         $accessible = $user->getActions()->where('code', 'rcv')->count();
@@ -46,12 +46,26 @@ class CheckPolicy
     {
         $claimable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
-                && $user->getBranches()->where('id', $check->transmittals->reverse()->first()->branch->id )->count()
-                && ! in_array($check->status_id, [3/*claimed*/, 5/*cancelled*/, 6/*cleared*/, 7/*staled*/]);
+                && $user->getBranches()->where('id', $check->branch()->id )->count()
+                && $check->received
+                && in_array($check->status_id, [1, 2, 4]); /*created, transmitted, returned*/
         });
 
         $accessible = $user->getActions()->where('code', 'clm')->count();
 
         return $claimable && $accessible;
+    }
+
+    public function clear(User $user, Company $company, Collection $checks)
+    {
+        $clearable = $checks->every( function($check) use ($company, $user) {
+            return $check->company == $company
+                && $user->getBranches()->where('id', $check->branch()->id )->count()
+                && $check->status_id === 3; /*claimed*/
+        });
+
+        $accessible = $user->getActions()->where('code', 'clr')->count();
+
+        return $clearable && $accessible;
     }
 }

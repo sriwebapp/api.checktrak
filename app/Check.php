@@ -32,4 +32,13 @@ class Check extends Model
     {
         return $this->belongsToMany(Transmittal::class);
     }
+
+    public function branch()
+    {
+        if ( $this->transmittals->count() ) {
+            return $this->transmittals->reverse()->first()->branch;
+        } else {
+            return Branch::first();
+        }
+    }
 }

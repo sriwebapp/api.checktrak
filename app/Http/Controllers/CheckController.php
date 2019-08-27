@@ -61,6 +61,8 @@ class CheckController extends Controller
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
         // check authorization
         $this->authorize('transmit', [Check::class, $company, $checks]);
         // create transmittal
@@ -88,6 +90,8 @@ class CheckController extends Controller
         $request->validate(['checks' => 'required|array']);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
@@ -108,16 +112,37 @@ class CheckController extends Controller
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
 
         $this->authorize('claim', [Check::class, $company, $checks]);
 
         $checks->each( function($check) use ($request) {
-            $check->update(['status_id' => 3]);
+            $check->update(['status_id' => 3]);/*claimed*/
 
             $this->recordLog($check, 'clm', $request->get('remarks'));
         });
 
         return ['message' => 'Checks successfully received.'];
+    }
+
+    public function clear(Request $request, Company $company)
+    {
+        $request->validate(['checks' => 'required|array']);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
+
+        $this->authorize('clear', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) use ($request) {
+            $check->update(['status_id' => 6]); /*cleared*/
+
+            $this->recordLog($check, 'clr');
+        });
+
+        return ['message' => 'Checks successfully cleared.'];
     }
 
     public function show(Company $company, Check $check)
@@ -126,7 +151,6 @@ class CheckController extends Controller
 
         $check->history;
         // $check->transmittals;
-
         return $check;
     }
     // record check log

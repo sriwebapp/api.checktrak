@@ -19,6 +19,9 @@ class Action extends Seeder
             ['name' => 'Claim', 'code' => 'clm'],
             ['name' => 'Return', 'code' => 'rtn'],
             ['name' => 'Cancel', 'code' => 'cnl'],
+            ['name' => 'Clear', 'code' => 'clr'],
+            ['name' => 'Edit', 'code' => 'edt'],
+            ['name' => 'Delete', 'code' => 'dlt'],
         ]);
     }
 }
