@@ -50,7 +50,6 @@ class CheckController extends Controller
 
     public function transmit(Request $request, Company $company)
     {
-        $this->authorize('transmit', Check::class);
         // validate
         $request->validate([
             'branch_id' => 'required|exists:branches,id',
@@ -62,8 +61,8 @@ class CheckController extends Controller
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
-        // check if checks belong to company
-        $this->checkCompany($company, $checks);
+        // check authorization
+        $this->authorize('transmit', [Check::class, $company, $checks]);
         // create transmittal
         Transmittal::create([
             'branch_id' => $request->get('branch_id'),
@@ -84,6 +83,23 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully transmitted.'];
     }
 
+    public function receive(Request $request, Company $company)
+    {
+        $request->validate(['checks' => 'required|array']);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+
+        $this->authorize('receive', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) {
+            $check->update(['received' => 1]);
+
+            $this->recordLog($check, 'rcv');
+        });
+
+        return ['message' => 'Checks successfully received.'];
+    }
+
     public function show(Company $company, Check $check)
     {
         abort_unless($check->company_id === $company->id, 404, 'Not Found');
@@ -101,12 +117,5 @@ class CheckController extends Controller
             'action_id' => Action::where('code', $action)->first()->id,
             'user_id' => Auth::user()->id
         ]);
-    }
-    // if check belongs to company
-    protected function checkCompany(Company $company, Collection $checks)
-    {
-        $checks->each( function($check) use ($company) {
-            abort_unless($check->company_id === $company->id, 403, 'Unauthorized');
-        });
     }
 }
