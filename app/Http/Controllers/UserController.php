@@ -86,6 +86,6 @@ class UserController extends Controller
         $user->branches()->sync($branches);
         $user->modules()->sync($modules);
 
-        return $user->access();
+        return ['message' => 'User access successfully updated.'];
     }
 }

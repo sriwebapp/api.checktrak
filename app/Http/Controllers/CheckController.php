@@ -100,22 +100,43 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully received.'];
     }
 
+    public function claim(Request $request, Company $company)
+    {
+        $request->validate([
+            'checks' => 'required|array',
+            'remarks' => 'max:191',
+        ]);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+
+        $this->authorize('claim', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) use ($request) {
+            $check->update(['status_id' => 3]);
+
+            $this->recordLog($check, 'clm', $request->get('remarks'));
+        });
+
+        return ['message' => 'Checks successfully received.'];
+    }
+
     public function show(Company $company, Check $check)
     {
         abort_unless($check->company_id === $company->id, 404, 'Not Found');
 
         $check->history;
-        $check->transmittals;
+        // $check->transmittals;
 
         return $check;
     }
     // record check log
-    protected function recordLog(Check $check, $action)
+    protected function recordLog(Check $check, $action, $remarks = null)
     {
         History::create([
             'check_id' => $check->id,
             'action_id' => Action::where('code', $action)->first()->id,
-            'user_id' => Auth::user()->id
+            'user_id' => Auth::user()->id,
+            'remarks' => $remarks
         ]);
     }
 }

@@ -12,4 +12,9 @@ class Branch extends Model
     {
         return $this->belongsTo(User::class, 'incharge_id');
     }
+
+    public function transmittals()
+    {
+        return $this->hasMany(Transmittal::class);
+    }
 }

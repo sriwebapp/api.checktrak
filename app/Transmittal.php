@@ -12,4 +12,9 @@ class Transmittal extends Model
     {
         return $this->belongsToMany(Check::class);
     }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
+    }
 }

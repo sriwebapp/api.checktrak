@@ -38,6 +38,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::post('/create', 'CheckController@create');
             Route::post('/transmit', 'CheckController@transmit');
             Route::post('/receive', 'CheckController@receive');
+            Route::post('/claim', 'CheckController@claim');
             Route::get('/{check}', 'CheckController@show');
         });
     });
