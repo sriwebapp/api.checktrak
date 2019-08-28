@@ -19,7 +19,9 @@ class CheckController extends Controller
     // show all for dev
     public function index(Company $company)
     {
-        return $company->checks;
+        $branches = Auth::user()->getBranches()->pluck('id');
+
+        return $company->checks()->whereIn('branch_id', $branches)->get();
     }
 
     public function create(Request $request, Company $company)
@@ -83,8 +85,8 @@ class CheckController extends Controller
             'series' => $request->get('series'),
         ])->checks()->sync($checks);
         // record history and update status
-        $checks->each( function($check) {
-            $check->update([ 'status_id' => 2, 'received' => 0 ]); // transmitted
+        $checks->each( function($check) use ($request) {
+            $check->update([ 'status_id' => 2, 'received' => 0, 'branch_id' => $request->get('branch_id')]); // transmitted
 
             $this->recordLog($check, 'trm');
         });
@@ -104,6 +106,8 @@ class CheckController extends Controller
 
         $checks->each( function($check) {
             $check->update(['received' => 1]);
+
+            if ($check->status_id === 4 /*returned*/) $check->update(['branch_id' => 1]);
 
             $this->recordLog($check, 'rcv');
         });
