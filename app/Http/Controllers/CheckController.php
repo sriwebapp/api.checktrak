@@ -197,7 +197,7 @@ class CheckController extends Controller
         return $check;
     }
 
-    public function edit(Request $request,Company $company, Check $check)
+    public function edit(Request $request, Company $company, Check $check)
     {
         $request->validate([ 'details' => 'required|max:191' ]);
 
@@ -208,6 +208,15 @@ class CheckController extends Controller
         $this->recordLog($check, 'edt', 'Details: ' . $request->get('details') );
 
         return ['message' => 'Check successfully updated.'];
+    }
+
+    public function delete(Request $request, Company $company, Check $check)
+    {
+        $this->authorize('delete', [$check, $company]);
+
+        $check->delete();
+
+        return ['message' => 'Check successfully deleted.'];
     }
     // record check log
     protected function recordLog(Check $check, $action, $remarks = null)

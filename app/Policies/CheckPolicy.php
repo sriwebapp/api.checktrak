@@ -104,4 +104,14 @@ class CheckPolicy
 
         return $accessible && $editable;
     }
+
+    public function delete(User $user, Check $check, Company $company)
+    {
+        $deletable = $check->company == $company
+            && $check->status_id === 1; /*created*/;
+
+        $accessible = $user->getActions()->where('code', 'dlt')->count();
+
+        return $accessible && $deletable;
+    }
 }
