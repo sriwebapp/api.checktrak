@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Check;
 use App\Action;
 use App\Branch;
 use App\Module;
@@ -20,6 +21,12 @@ class TestController extends Controller
     public function index(Request $request)
     {
         // return $branch->inCharge;
+
+        $check = Check::withTrashed()->findOrFail($request->get('id'));
+
+        $check->history;
+
+        return $check;
 
         $user = User::findOrFail($request->get('id'));
 

@@ -43,6 +43,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::patch('/return/{transmittal}', 'CheckController@return');
             Route::post('/cancel', 'CheckController@cancel');
             Route::get('/{check}', 'CheckController@show');
+            Route::get('/{check}/history', 'CheckController@history');
             Route::patch('/{check}', 'CheckController@edit');
             Route::delete('/{check}', 'CheckController@delete');
         });

@@ -193,13 +193,22 @@ class CheckController extends Controller
         return ['message' => 'Checks cancelled.'];
     }
 
-    public function show(Company $company, Check $check)
+    public function show(Company $company, $id)
     {
-        abort_unless($check->company_id === $company->id, 404, 'Not Found');
+        $check = Check::withTrashed()->findOrFail($id);
 
-        $check->history;
-        // $check->transmittals;
+        $this->authorize('show', [$check, $company]);
+
         return $check;
+    }
+
+    public function history(Company $company, $id)
+    {
+        $check = Check::withTrashed()->findOrFail($id);
+
+        $this->authorize('show', [$check, $company]);
+
+        return $check->history()->with('action')->get();
     }
 
     public function edit(Request $request, Company $company, Check $check)
@@ -215,9 +224,11 @@ class CheckController extends Controller
         return ['message' => 'Check successfully updated.'];
     }
 
-    public function delete(Request $request, Company $company, Check $check)
+    public function delete(Company $company, Check $check)
     {
         $this->authorize('delete', [$check, $company]);
+
+        $this->recordLog($check, 'dlt');
 
         $check->delete();
 

@@ -114,4 +114,12 @@ class CheckPolicy
 
         return $accessible && $deletable;
     }
+
+    public function show(User $user, Check $check, Company $company)
+    {
+        $showable = $check->company == $company
+            && $user->getBranches()->where('id', $check->branch()->id )->count();
+
+        return $showable;
+    }
 }

@@ -9,4 +9,9 @@ class History extends Model
     protected $table = 'check_history';
 
     protected $guarded = [];
+
+    public function action()
+    {
+        return $this->belongsTo(Action::class);
+    }
 }

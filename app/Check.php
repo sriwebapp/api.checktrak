@@ -38,10 +38,10 @@ class Check extends Model
 
     public function branch()
     {
-        if ( $this->transmittals->count() ) {
-            return $this->transmittals->reverse()->first()->branch;
-        } else {
+        if ( ! $this->transmittals->count() || ( $this->transmittals->reverse()->first()->returned && $this->received ) ) {
             return Branch::first();
+        } else {
+            return $this->transmittals->reverse()->first()->branch;
         }
     }
 }
