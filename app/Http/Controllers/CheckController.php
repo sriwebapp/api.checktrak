@@ -145,15 +145,15 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully cleared.'];
     }
 
-    public function return(Request $request, Company $company)
+    public function return(Request $request, Company $company, Transmittal $transmittal)
     {
-        $request->validate(['checks' => 'required|array']);
-
-        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        $checks = $transmittal->checks()->where("status_id", 2)->get(); /*transmitted*/
         // must be greater than zero
-        abort_unless($checks->count(), 400, "No check selected!");
+        abort_unless($checks->count(), 400, "No checks available!");
 
-        $this->authorize('return', [Check::class, $company, $checks]);
+        $this->authorize('return', [Check::class, $checks]);
+
+        $transmittal->update([ 'returned' => Carbon::now() ]); // update transmittal
 
         $checks->each( function($check) {
             $check->update([ 'status_id' => 4, 'received' => 0 ]); // returned
@@ -166,7 +166,10 @@ class CheckController extends Controller
 
     public function cancel(Request $request, Company $company)
     {
-        $request->validate(['checks' => 'required|array']);
+        $request->validate([
+            'checks' => 'required|array',
+            'remarks' => 'max:191',
+        ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
@@ -174,10 +177,10 @@ class CheckController extends Controller
 
         $this->authorize('cancel', [Check::class, $company, $checks]);
 
-        $checks->each( function($check) {
+        $checks->each( function($check) use ($request) {
             $check->update([ 'status_id' => 5]); // cancelled
 
-            $this->recordLog($check, 'cnl');
+            $this->recordLog($check, 'cnl', $request->get('remarks'));
         });
 
         return ['message' => 'Checks cancelled.'];

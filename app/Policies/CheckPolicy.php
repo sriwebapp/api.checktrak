@@ -69,13 +69,11 @@ class CheckPolicy
         return $clearable && $accessible;
     }
 
-    public function return(User $user, Company $company, Collection $checks)
+    public function return(User $user, Collection $checks)
     {
-        $returnable = $checks->every( function($check) use ($company, $user) {
-            return $check->company == $company
-                && $user->getBranches()->where('id', $check->branch()->id )->count()
-                && $check->received
-                && $check->status_id === 2; /*transmitted*/
+        $returnable = $checks->every( function($check) use ($user) {
+            return $user->getBranches()->where('id', $check->branch()->id )->count()
+                && $check->received;
         });
 
         $accessible = $user->getActions()->where('code', 'rtn')->count();

@@ -22,6 +22,7 @@ class CreateTransmittalsTable extends Migration
             $table->date('due');
             $table->string('ref')->unique();
             $table->string('series');
+            $table->date('returned')->nullable();
             $table->timestamps();
 
             $table->foreign('branch_id')->references('id')->on('branches');

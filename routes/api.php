@@ -40,7 +40,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::post('/receive', 'CheckController@receive');
             Route::post('/claim', 'CheckController@claim');
             Route::post('/clear', 'CheckController@clear');
-            Route::post('/return', 'CheckController@return');
+            Route::patch('/return/{transmittal}', 'CheckController@return');
             Route::post('/cancel', 'CheckController@cancel');
             Route::get('/{check}', 'CheckController@show');
         });
