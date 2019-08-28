@@ -94,4 +94,14 @@ class CheckPolicy
 
         return $accessible && $returnable;
     }
+
+    public function edit(User $user, Check $check, Company $company)
+    {
+        $editable = $check->company == $company
+            && $check->status_id !== 6; /*cleared*/;
+
+        $accessible = $user->getActions()->where('code', 'edt')->count();
+
+        return $accessible && $editable;
+    }
 }

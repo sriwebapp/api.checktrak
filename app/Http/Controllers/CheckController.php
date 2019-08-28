@@ -199,7 +199,15 @@ class CheckController extends Controller
 
     public function edit(Request $request,Company $company, Check $check)
     {
-        return $check;
+        $request->validate([ 'details' => 'required|max:191' ]);
+
+        $this->authorize('edit', [$check, $company]);
+
+        $check->update([ 'details' => $request->get('details') ]);
+
+        $this->recordLog($check, 'edt', 'Details: ' . $request->get('details') );
+
+        return ['message' => 'Check successfully updated.'];
     }
     // record check log
     protected function recordLog(Check $check, $action, $remarks = null)
