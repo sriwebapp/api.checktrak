@@ -147,4 +147,6 @@ return [
 
     'attributes' => [],
 
+    "unique2" => 'The :attribute has already been taken.',
+    "unique2_not_deleted" => 'The :attribute has already been taken.',
 ];

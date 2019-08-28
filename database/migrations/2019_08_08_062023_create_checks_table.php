@@ -24,14 +24,13 @@ class CreateChecksTable extends Migration
             $table->decimal('amount', 20, 2);
             $table->string('details')->nullable();
             $table->date('date');
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('status_id')->references('id')->on('statuses');
             $table->foreign('account_id')->references('id')->on('accounts');
             // $table->foreign('payee_id')->references('id')->on('payees');
-
-            $table->unique(['number', 'account_id']);
         });
     }
 

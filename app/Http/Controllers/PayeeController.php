@@ -29,7 +29,7 @@ class PayeeController extends Controller
 
         $request->validate([
             'name' => 'required|max:191',
-            'code' => 'required|max:20',
+            'code' => 'required|max:20|unique2:payees,code,company_id,' . $company->id,
             'desc' => 'required|max:191',
             'payee_group_id' => 'required|integer|exists:payee_groups,id',
         ]);
