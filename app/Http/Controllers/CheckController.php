@@ -27,6 +27,7 @@ class CheckController extends Controller
         $this->authorize('create', Check::class);
 
         $request->validate([
+            'number' => 'required|min:6|max:10',
             'account_id' => ['required', Rule::in($company->accounts()->pluck('id'))],
             'payee_id' => ['required', Rule::in($company->payees()->pluck('id'))],
             'amount' => 'required|numeric|gt:0',
@@ -34,6 +35,7 @@ class CheckController extends Controller
         ]);
 
         $check = Check::create([
+            'number' => $request->get('number'),
             'status_id' => 1, // created
             'company_id' => $company->id,
             'account_id' => $request->get('account_id'),
@@ -192,6 +194,11 @@ class CheckController extends Controller
 
         $check->history;
         // $check->transmittals;
+        return $check;
+    }
+
+    public function edit(Request $request,Company $company, Check $check)
+    {
         return $check;
     }
     // record check log

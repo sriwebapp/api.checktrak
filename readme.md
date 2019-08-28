@@ -20,7 +20,7 @@
 ### Todos Later
 
 -   Group policy to block editing higher groups
--   Validation for two rows unique (payee, )
+-   Validation for two rows unique (payee, check)
 
 ### Reminders before deployment
 
