@@ -207,16 +207,14 @@ class CheckController extends Controller
 
         $this->authorize('show', [$check, $company]);
 
+        $check->company;
+        $check->payee;
+        $check->branch;
+        $check->account;
+        $check->transmittals;
+        $check->history = $check->history()->with('action')->get();
+
         return $check;
-    }
-
-    public function history(Company $company, $id)
-    {
-        $check = Check::withTrashed()->findOrFail($id);
-
-        $this->authorize('show', [$check, $company]);
-
-        return $check->history()->with('action')->get();
     }
 
     public function edit(Request $request, Company $company, Check $check)
@@ -232,11 +230,13 @@ class CheckController extends Controller
         return ['message' => 'Check successfully updated.'];
     }
 
-    public function delete(Company $company, Check $check)
+    public function delete(Request $request, Company $company, Check $check)
     {
+        $request->validate([ 'remarks' => 'required|max:191' ]);
+
         $this->authorize('delete', [$check, $company]);
 
-        $this->recordLog($check, 'dlt');
+        $this->recordLog($check, 'dlt', $request->get('remarks'));
 
         $check->delete();
 

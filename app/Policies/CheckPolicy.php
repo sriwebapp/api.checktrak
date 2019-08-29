@@ -83,16 +83,15 @@ class CheckPolicy
 
     public function cancel(User $user, Company $company, Collection $checks)
     {
-        $returnable = $checks->every( function($check) use ($company, $user) {
+        $cancelable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
                 && $user->getBranches()->where('id', $check->branch->id )->count()
-                && $check->received
-                && in_array($check->status_id, [1, 4]); /*created, returned*/
+                && ! in_array($check->status_id, [5, 6, 7]); /*cancelled, cleared, staled*/
         });
 
         $accessible = $user->getActions()->where('code', 'cnl')->count();
 
-        return $accessible && $returnable;
+        return $accessible && $cancelable;
     }
 
     public function edit(User $user, Check $check, Company $company)
