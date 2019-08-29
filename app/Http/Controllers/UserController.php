@@ -22,7 +22,7 @@ class UserController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return User::get();
+        return User::with('branch')->with('group')->get();
     }
 
     public function store(Request $request)
@@ -32,6 +32,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:191',
             'email' => 'required|string|email|max:191|unique:users',
+            'branch_id' => 'required|integer|exists:branches,id',
             'group_id' => 'required|integer|exists:groups,id',
         ]);
 
@@ -56,9 +57,10 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:191',
             'email' => 'required|string|email|max:191|unique:users,email,' . $user->id,
+            'branch_id' => 'required|integer|exists:branches,id',
         ]);
 
-        $user->update($request->only('name', 'email'));
+        $user->update($request->only('name', 'email', 'branch_id'));
 
         return ['message' => 'User successfully updated.'];
     }

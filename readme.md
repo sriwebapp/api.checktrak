@@ -4,7 +4,7 @@
 
 -   System Admin: All Access + Telescope
 -   Admin: All Modules, Actions and Branches
--   Head Office: Create, Transmit, Delete, Edit, Clear and Receive for All Branches, and Payee Module
+-   Head Office: Create, Transmit, Claim, Delete, Edit, Clear and Receive for All Branches, and Payee Module
 -   Branch Office: Receive, Claim, Return check for specific Branch
 -   Custom: Customized Access
 

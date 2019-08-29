@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\User;
 use App\Check;
 use App\Action;
+use App\Branch;
 use App\Company;
 use App\History;
 use Carbon\Carbon;
@@ -25,6 +26,7 @@ class CheckController extends Controller
             ->whereIn('branch_id', $branches)
             ->with('payee')
             ->with('account')
+            ->with('branch')
             ->get();
     }
 
@@ -65,7 +67,7 @@ class CheckController extends Controller
     {
         // validate
         $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+            'branch_id' => ['required', Rule::in(Branch::where('id', '<>', 1)->pluck('id')) ],
             'incharge' => 'required|exists:users,id',
             'date' => 'required|date',
             'ref' => 'required|unique:transmittals,ref',
@@ -110,8 +112,6 @@ class CheckController extends Controller
 
         $checks->each( function($check) {
             $check->update(['received' => 1]);
-
-            if ($check->status_id === 4 /*returned*/) $check->update(['branch_id' => 1]);
 
             $this->recordLog($check, 'rcv');
         });
@@ -171,7 +171,7 @@ class CheckController extends Controller
         $transmittal->update([ 'returned' => Carbon::now() ]); // update transmittal
 
         $checks->each( function($check) {
-            $check->update([ 'status_id' => 4, 'received' => 0 ]); // returned
+            $check->update([ 'status_id' => 4, 'received' => 0, 'branch_id' => 1]); // returned
 
             $this->recordLog($check, 'rtn');
         });

@@ -14,7 +14,7 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'name', 'email', 'password', 'group_id'
+        'name', 'email', 'password', 'branch_id', 'group_id'
     ];
 
     protected $hidden = [
@@ -33,6 +33,11 @@ class User extends Authenticatable
     public function group()
     {
         return $this->belongsTo(Group::class);
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class);
     }
 
     public function branches()
@@ -73,9 +78,10 @@ class User extends Authenticatable
 
     public function access()
     {
-        $this->branch = $this->getBranches()->pluck('code');
-        $this->action = $this->getActions()->pluck('code');
-        $this->module = $this->getModules()->pluck('code');
+        $this->branch;
+        $this->branchAccess = $this->getBranches()->pluck('code');
+        $this->actionAccess = $this->getActions()->pluck('code');
+        $this->moduleAccess = $this->getModules()->pluck('code');
 
         return $this;
     }

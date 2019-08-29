@@ -27,9 +27,11 @@ class AccountController extends Controller
     {
         $this->authorize('module', $this->module);
 
+        $bank = strtoupper($request->get('bank'));
+
         $request->validate([
             'bank' => 'required|min:2|max:5',
-            'number' => 'required|integer|min:10',
+            'number' => 'required|integer|min:10|unique2:accounts,number,bank,' . $bank,
             'address' => 'required|string|max:191',
             'tel' => 'required|max:50',
             'email' => 'required|email',
@@ -38,8 +40,6 @@ class AccountController extends Controller
             'fax' => 'required|string|max:50',
             'purpose' => 'required|string',
         ]);
-
-        $bank = strtoupper($request->get('bank'));
 
         Account::create([
             'company_id' => $company->id,

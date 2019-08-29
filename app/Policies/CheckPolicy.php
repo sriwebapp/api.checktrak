@@ -34,7 +34,7 @@ class CheckPolicy
         $receivable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
                 && ! $check->received
-                && $user->getBranches()->where('id', $check->branch->id )->count();
+                && $user->branch == $check->branch;
         });
 
         $accessible = $user->getActions()->where('code', 'rcv')->count();
@@ -46,7 +46,7 @@ class CheckPolicy
     {
         $claimable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
-                && $user->getBranches()->where('id', $check->branch->id )->count()
+                && $user->branch == $check->branch
                 && $check->received
                 && in_array($check->status_id, [1, 2, 4]); /*created, transmitted, returned*/
         });
@@ -72,7 +72,7 @@ class CheckPolicy
     public function return(User $user, Collection $checks)
     {
         $returnable = $checks->every( function($check) use ($user) {
-            return $user->getBranches()->where('id', $check->branch->id )->count()
+            return $user->branch == $check->branch
                 && $check->received;
         });
 
