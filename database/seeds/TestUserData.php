@@ -27,5 +27,6 @@ class TestUserData extends Seeder
                 ['name' => 'BO 05', 'email' => 'bo05@example.com', 'password' => $password, 'group_id' => 4],
                 ['name' => 'Custom User', 'email' => 'custom@example.com', 'password' => $password, 'group_id' => 5],
         ]);
+
     }
 }

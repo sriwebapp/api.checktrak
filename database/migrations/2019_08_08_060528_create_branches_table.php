@@ -23,6 +23,10 @@ class CreateBranchesTable extends Migration
 
             $table->foreign('incharge_id')->references('id')->on('users');
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('branch_id')->references('id')->on('branches');
+        });
     }
 
     /**

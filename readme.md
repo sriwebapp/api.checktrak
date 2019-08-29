@@ -25,3 +25,5 @@
 ### Reminders before deployment
 
 -   Record head office first in branches
+-   Consider Check receiving by transmittals
+-   Modify receiving based on branch if transmitted

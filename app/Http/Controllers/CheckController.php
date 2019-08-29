@@ -21,7 +21,11 @@ class CheckController extends Controller
     {
         $branches = Auth::user()->getBranches()->pluck('id');
 
-        return $company->checks()->whereIn('branch_id', $branches)->get();
+        return $company->checks()
+            ->whereIn('branch_id', $branches)
+            ->with('payee')
+            ->with('account')
+            ->get();
     }
 
     public function create(Request $request, Company $company)
@@ -134,7 +138,7 @@ class CheckController extends Controller
             $this->recordLog($check, 'clm', $request->get('remarks'));
         });
 
-        return ['message' => 'Checks successfully received.'];
+        return ['message' => 'Checks successfully claimed.'];
     }
 
     public function clear(Request $request, Company $company)
