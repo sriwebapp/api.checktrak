@@ -14,10 +14,10 @@ class ToolController extends Controller
         return Action::get();
     }
 
-    public function branches()
-    {
-        return Branch::get();
-    }
+    // public function branches()
+    // {
+    //     return Branch::get();
+    // }
 
     public function modules()
     {

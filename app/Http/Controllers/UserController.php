@@ -38,16 +38,24 @@ class UserController extends Controller
 
         $request['password'] = bcrypt(config('app.default_pass'));
 
-        User::create($request->all());
+        $user = User::create($request->all());
 
-        return ['message' => 'User successfully recorded.'];
+        return [
+            'user' => $user,
+            'message' => 'User successfully recorded.',
+        ];
     }
 
     public function show(User $user)
     {
         $this->authorize('module', $this->module);
 
-        return $user->access();
+        $user->group;
+        $user->actions;
+        $user->modules;
+        $user->branches;
+
+        return $user;
     }
 
     public function update(Request $request, User $user)

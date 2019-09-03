@@ -18,7 +18,7 @@ class BranchController extends Controller
 
     public function index()
     {
-        $this->authorize('module', $this->module);
+        // $this->authorize('module', $this->module);
 
         return Branch::with('incharge')->get();
     }

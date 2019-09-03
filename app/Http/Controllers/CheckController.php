@@ -207,7 +207,6 @@ class CheckController extends Controller
 
         $this->authorize('show', [$check, $company]);
 
-        $check->company;
         $check->payee;
         $check->branch;
         $check->account;
@@ -236,9 +235,9 @@ class CheckController extends Controller
 
         $this->authorize('delete', [$check, $company]);
 
-        $this->recordLog($check, 'dlt', $request->get('remarks'));
-
         $check->delete();
+
+        $this->recordLog($check, 'dlt', $request->get('remarks'));
 
         return ['message' => 'Check successfully deleted.'];
     }

@@ -17,7 +17,7 @@ class CompanyController extends Controller
 
     public function index()
     {
-        $this->authorize('module', $this->module);
+        // $this->authorize('module', $this->module);
 
         return Company::get();
     }

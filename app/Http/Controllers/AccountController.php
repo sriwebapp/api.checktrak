@@ -18,7 +18,7 @@ class AccountController extends Controller
 
     public function index(Company $company)
     {
-        $this->authorize('module', $this->module);
+        // $this->authorize('module', $this->module);
 
         return $company->accounts;
     }
