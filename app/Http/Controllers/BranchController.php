@@ -18,7 +18,7 @@ class BranchController extends Controller
 
     public function index()
     {
-        // $this->authorize('module', $this->module);
+        $this->authorize('module', $this->module);
 
         return Branch::with('incharge')->get();
     }
@@ -28,9 +28,9 @@ class BranchController extends Controller
         $this->authorize('module', $this->module);
 
         $request->validate([
-            'code' => 'required|string|max:10|unique:branches',
-            'name' => 'required|string|max:191|unique:branches',
-            'incharge_id' => 'required|integer|exists:users,id',
+            'code' => 'required|string|min:2|max:10|unique:branches',
+            'name' => 'required|string|min:3|max:191|unique:branches',
+            'incharge_id' => /*required*/ 'integer|nullable|exists:users,id',
         ]);
 
         Branch::create([
@@ -56,9 +56,9 @@ class BranchController extends Controller
         $this->authorize('module', $this->module);
 
         $request->validate([
-            'code' => 'required|string|max:10|unique:branches,code,' . $branch->id,
-            'name' => 'required|string|max:191|unique:branches,name,' . $branch->id,
-            'incharge_id' => 'required|integer|exists:users,id',
+            'code' => 'required|string|min:2|max:10|unique:branches,code,' . $branch->id,
+            'name' => 'required|string|min:3|max:191|unique:branches,name,' . $branch->id,
+            'incharge_id' => /*required*/ 'integer|nullable|exists:users,id',
         ]);
 
         $branch->update([

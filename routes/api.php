@@ -51,6 +51,8 @@ Route::middleware(['auth:api'])->group(function() {
     Route::prefix('/tools')->group( function() {
         Route::get('/actions', "ToolController@actions");
         Route::get('/branches', "ToolController@branches");
+        Route::get('/groups', "ToolController@groups");
         Route::get('/modules', "ToolController@modules");
+        Route::get('/users', "ToolController@users");
     });
 });

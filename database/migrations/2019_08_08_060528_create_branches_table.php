@@ -17,7 +17,7 @@ class CreateBranchesTable extends Migration
             $table->bigIncrements('id');
             $table->string('code', 10)->unique();
             $table->string('name');
-            $table->unsignedBigInteger('incharge_id');
+            $table->unsignedBigInteger('incharge_id')->nullable();
             $table->boolean('active')->default(1);
             $table->timestamps();
 

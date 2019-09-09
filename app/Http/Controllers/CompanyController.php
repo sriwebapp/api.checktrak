@@ -17,7 +17,7 @@ class CompanyController extends Controller
 
     public function index()
     {
-        // $this->authorize('module', $this->module);
+        $this->authorize('module', $this->module);
 
         return Company::get();
     }
@@ -27,14 +27,14 @@ class CompanyController extends Controller
         $this->authorize('module', $this->module);
 
         $request->validate([
-            'code' => 'required|string|max:10|unique:companies',
-            'name' => 'required|string|max:191|unique:companies',
-            'address' => 'required|string|max:191',
-            'tel' => 'required|max:50',
-            'tin' => 'required|max:50',
-            'sss' => 'required|max:50',
-            'hdmf' => 'required|max:50',
-            'phic' => 'required|max:50',
+            'code' => 'required|string|min:3|max:10|unique:companies',
+            'name' => 'required|string|min:5|max:191|unique:companies',
+            'address' => 'required|string|min:10|max:191',
+            'tel' => 'required|min:7|max:50',
+            'tin' => /*required*/ 'max:50',
+            'sss' => /*required*/ 'max:50',
+            'hdmf' => /*required*/ 'max:50',
+            'phic' => /*required*/ 'max:50',
         ]);
 
         Company::create([
@@ -63,14 +63,14 @@ class CompanyController extends Controller
         $this->authorize('module', $this->module);
 
         $request->validate([
-            'code' => 'required|string|max:10|unique:companies,code,' . $company->id,
-            'name' => 'required|string|max:191|unique:companies,name,' . $company->id,
-            'address' => 'required|string|max:191',
-            'tel' => 'required|max:50',
-            'tin' => 'required|max:50',
-            'sss' => 'required|max:50',
-            'hdmf' => 'required|max:50',
-            'phic' => 'required|max:50',
+            'code' => 'required|string|min:3|max:10|unique:companies,code,' . $company->id,
+            'name' => 'required|string|min:5|max:191|unique:companies,name,' . $company->id,
+            'address' => 'required|string|min:10|max:191',
+            'tel' => 'required|min:7|max:50',
+            'tin' => /*required*/ 'max:50',
+            'sss' => /*required*/ 'max:50',
+            'hdmf' => /*required*/ 'max:50',
+            'phic' => /*required*/ 'max:50',
         ]);
 
         $company->update([
@@ -84,7 +84,10 @@ class CompanyController extends Controller
             'phic' => $request->get('phic'),
         ]);
 
-        return ['message' => 'Company successfully updated.'];
+        return [
+            'company' => $company,
+            'message' => 'Company successfully updated.'
+        ];
     }
 
     public function destroy(Company $company)

@@ -18,11 +18,11 @@ class CreateCompaniesTable extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->string('address');
-            $table->string('tel');
-            $table->string('tin');
-            $table->string('sss');
-            $table->string('hdmf');
-            $table->string('phic');
+            $table->string('tel')->nullable();
+            $table->string('tin')->nullable();
+            $table->string('sss')->nullable();
+            $table->string('hdmf')->nullable();
+            $table->string('phic')->nullable();
             $table->timestamps();
         });
     }

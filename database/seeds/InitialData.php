@@ -18,5 +18,12 @@ class InitialData extends Seeder
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'group_id' => 1, // system administrator
         ]);
+
+        User::create([
+            'name' => 'Michelle Villa',
+            'email' => 'michelle.villa@serviceresourcesinc.com',
+            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'group_id' => 2, // administrator
+        ]);
     }
 }

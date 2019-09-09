@@ -17,5 +17,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PayeeGroup::class);
         $this->call(Module::class);
         $this->call(InitialData::class);
+        $this->call(TestGroupBranchData::class);
+        $this->call(TestGroupModuleData::class);
+        $this->call(TestGroupActionData::class);
     }
 }

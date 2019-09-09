@@ -19,12 +19,9 @@ class GroupController extends Controller
 
     public function index()
     {
-        // $this->authorize('module', $this->module);
+        $this->authorize('module', $this->module);
 
-        return Group::with('actions')
-            ->with('branches')
-            ->with('modules')
-            ->get();
+        return Group::get();
     }
 
     public function store(Request $request)
@@ -36,9 +33,9 @@ class GroupController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        $group->actions = $group->getActions();
-        $group->branches = $group->getBranches();
-        $group->modules = $group->getModules();
+        $group->actions;
+        $group->branches;
+        $group->modules;
 
         return $group;
     }
