@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
@@ -27,6 +28,8 @@ class AuthController extends Controller
                 ],
             ]);
 
+            Log::info($request->get('email') . ' signed in.');
+
             return $response->getBody();
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $message;
@@ -47,6 +50,8 @@ class AuthController extends Controller
 
     public function logout(Request $request)
     {
+        Log::info($request->user()->name . ' signed out.');
+
         $request->user()->tokens()->delete();
     }
 

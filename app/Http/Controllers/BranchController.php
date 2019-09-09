@@ -6,6 +6,7 @@ use App\User;
 use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BranchController extends Controller
 {
@@ -39,6 +40,8 @@ class BranchController extends Controller
             'incharge_id' => $request->get('incharge_id'),
         ]);
 
+        Log::info($request->user()->name . ' created new branch.');
+
         return ['message' => 'Branch successfully recorded.'];
     }
 
@@ -66,6 +69,8 @@ class BranchController extends Controller
             'name' => $request->get('name'),
             'incharge_id' => $request->get('incharge_id'),
         ]);
+
+        Log::info($request->user()->name . ' updated a branch: ' . $branch->code);
 
         return ['message' => 'Branch successfully updated.'];
     }

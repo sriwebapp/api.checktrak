@@ -7,6 +7,7 @@ use App\Action;
 use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class GroupController extends Controller
 {
@@ -59,6 +60,8 @@ class GroupController extends Controller
         $group->actions()->sync($actions);
         $group->branches()->sync($branches);
         $group->modules()->sync($modules);
+
+        Log::info($request->user()->name . ' updated group access: ' . $group->name);
 
         return ['message' => 'Group Access successfully updated.'];
     }

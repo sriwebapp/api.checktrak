@@ -8,6 +8,7 @@ use App\Action;
 use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -40,6 +41,8 @@ class UserController extends Controller
 
         $user = User::create($request->all());
 
+        Log::info($request->user()->name . ' created new user.');
+
         return [
             'user' => $user,
             'message' => 'User successfully recorded.',
@@ -70,6 +73,8 @@ class UserController extends Controller
 
         $user->update($request->only('name', 'email', 'branch_id'));
 
+        Log::info($request->user()->name . ' updated a user: ' . $user->email);
+
         return ['message' => 'User successfully updated.'];
     }
 
@@ -95,6 +100,8 @@ class UserController extends Controller
         $user->actions()->sync($actions);
         $user->branches()->sync($branches);
         $user->modules()->sync($modules);
+
+        Log::info($request->user()->name . ' updated a user access: ' . $user->email);
 
         return ['message' => 'User access successfully updated.'];
     }

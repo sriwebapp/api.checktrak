@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Module;
 use App\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CompanyController extends Controller
 {
@@ -48,6 +49,8 @@ class CompanyController extends Controller
             'phic' => $request->get('phic'),
         ]);
 
+        Log::info($request->user()->name . ' created new company.');
+
         return ['message' => 'Company successfully recorded.'];
     }
 
@@ -83,6 +86,8 @@ class CompanyController extends Controller
             'hdmf' => $request->get('hdmf'),
             'phic' => $request->get('phic'),
         ]);
+
+        Log::info($request->user()->name . ' updated a company: ' . $company->code);
 
         return [
             'company' => $company,
