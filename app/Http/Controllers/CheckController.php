@@ -12,6 +12,7 @@ use Carbon\Carbon;
 use App\Transmittal;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -24,9 +25,11 @@ class CheckController extends Controller
 
         return $company->checks()
             ->whereIn('branch_id', $branches)
+            ->with('status')
             ->with('payee')
             ->with('account')
             ->with('branch')
+            ->orderBy('id', 'desc')
             ->get();
     }
 
@@ -59,6 +62,8 @@ class CheckController extends Controller
         ]);
 
         $this->recordLog($check, 'crt');
+
+        Log::info($request->user()->name . ' created new check.');
 
         return ['message' => 'Check successfully created.'];
     }

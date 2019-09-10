@@ -17,6 +17,7 @@ Route::post('/test', 'TestController@index');
 Route::post('/login', 'AuthController@login');
 Route::post('/password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail');
 Route::post('/password/reset', 'Auth\ResetPasswordController@reset');
+Route::get('/tools/companies', 'ToolController@companies');
 
 Route::middleware(['auth:api'])->group(function() {
     Route::post('/logout', 'AuthController@logout');
@@ -51,8 +52,12 @@ Route::middleware(['auth:api'])->group(function() {
     Route::prefix('/tools')->group( function() {
         Route::get('/actions', "ToolController@actions");
         Route::get('/branches', "ToolController@branches");
+        Route::get('/company/{company}', 'ToolController@company');
         Route::get('/groups', "ToolController@groups");
         Route::get('/modules', "ToolController@modules");
-        Route::get('/users', "ToolController@users");
+        Route::get('/users', 'ToolController@users');
+        Route::get('/payee-group', 'ToolController@payeeGroup');
+        Route::get('/payees/{company}', 'ToolController@payees');
+        Route::get('/accounts/{company}', 'ToolController@accounts');
     });
 });

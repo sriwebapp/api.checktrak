@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,7 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|min:6',
+            'company_id' => 'required|exists:companies,id'
         ]);
 
         $http = new \GuzzleHttp\Client;
@@ -30,7 +32,10 @@ class AuthController extends Controller
 
             Log::info($request->get('email') . ' signed in.');
 
-            return $response->getBody();
+            return [
+                'token' => json_decode($response->getBody(), true),
+                'company' => Company::find($request->get('company_id'))->id,
+            ];
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $message;
 

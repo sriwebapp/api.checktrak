@@ -13,11 +13,11 @@ class TestData extends Seeder
     {
         $this->call(TestUserData::class);
         $this->call(TestBranchData::class);
-        $this->call(TestGroupBranchData::class);
+        // $this->call(TestGroupBranchData::class);
         $this->call(TestUserBranchData::class);
-        $this->call(TestGroupModuleData::class);
+        // $this->call(TestGroupModuleData::class);
         $this->call(TestUserModuleData::class);
-        $this->call(TestGroupActionData::class);
+        // $this->call(TestGroupActionData::class);
         $this->call(TestUserActionData::class);
         $this->call(TestCompanyData::class);
         $this->call(TestAccountData::class);

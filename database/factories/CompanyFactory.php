@@ -7,7 +7,7 @@ use Faker\Generator as Faker;
 
 $factory->define(Company::class, function (Faker $faker) {
     return [
-        'code' => $faker->word,
+        'code' => $faker->unique()->word,
         'name' => $faker->company,
         'address' => $faker->address,
         'tel' => $faker->e164PhoneNumber,

@@ -40,4 +40,9 @@ class Check extends Model
     {
         return $this->belongsTo(Branch::class);
     }
+
+    public function status()
+    {
+        return $this->belongsTo(Status::class);
+    }
 }

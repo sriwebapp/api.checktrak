@@ -6,6 +6,7 @@ use App\Module;
 use App\Account;
 use App\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AccountController extends Controller
 {
@@ -33,12 +34,12 @@ class AccountController extends Controller
             'bank' => 'required|min:2|max:5',
             'number' => 'required|integer|min:10|unique2:accounts,number,bank,' . $bank,
             'address' => 'required|string|max:191',
-            'tel' => 'required|max:50',
-            'email' => 'required|email',
-            'contact_person' => 'required|string|max:191',
-            'designation' => 'required|string|max:191',
-            'fax' => 'required|string|max:50',
-            'purpose' => 'required|string',
+            'tel' => /*required*/ 'max:50',
+            'email' => /*required*/ 'email|nullable',
+            'contact_person' => /*required|string*/ 'max:191',
+            'designation' => /*required|string*/ 'max:191',
+            'fax' => /*required|string*/ 'max:50',
+            'purpose' => /*required|string*/ '',
         ]);
 
         Account::create([
@@ -54,6 +55,8 @@ class AccountController extends Controller
             'fax' => $request->get('fax'),
             'purpose' => $request->get('purpose'),
         ]);
+
+        Log::info($request->user()->name . ' created new account.');
 
         return ['message' => 'Bank Account successfully recorded.'];
     }
@@ -77,12 +80,12 @@ class AccountController extends Controller
             'bank' => 'required|min:2|max:5',
             'number' => 'required|integer|min:10',
             'address' => 'required|string|max:191',
-            'tel' => 'required|max:50',
-            'email' => 'required|email',
-            'contact_person' => 'required|string|max:191',
-            'designation' => 'required|string|max:191',
-            'fax' => 'required|string|max:50',
-            'purpose' => 'required|string',
+            'tel' => /*required*/ 'max:50',
+            'email' => /*required*/ 'email|nullable',
+            'contact_person' => /*required|string*/ 'max:191',
+            'designation' => /*required|string*/ 'max:191',
+            'fax' => /*required|string*/ 'max:50',
+            'purpose' => /*required|string*/ '',
         ]);
 
         $bank = strtoupper($request->get('bank'));
@@ -99,6 +102,8 @@ class AccountController extends Controller
             'fax' => $request->get('fax'),
             'purpose' => $request->get('purpose'),
         ]);
+
+        Log::info($request->user()->name . ' updated an account: ' . $account->code);
 
         return ['message' => 'Bank Account successfully updated.'];
     }

@@ -6,6 +6,7 @@ use App\Payee;
 use App\Module;
 use App\Company;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PayeeController extends Controller
 {
@@ -42,6 +43,8 @@ class PayeeController extends Controller
             'payee_group_id' => $request->get('payee_group_id'),
         ]);
 
+        Log::info($request->user()->name . ' created new payee.');
+
         return ['message' => 'Payee successfully recorded.'];
     }
 
@@ -75,6 +78,8 @@ class PayeeController extends Controller
             'desc' => $request->get('desc'),
             'payee_group_id' => $request->get('payee_group_id'),
         ]);
+
+        Log::info($request->user()->name . ' updated a payee: ' . $payee->code);
 
         return ['message' => 'Payee successfully updated .'];
     }

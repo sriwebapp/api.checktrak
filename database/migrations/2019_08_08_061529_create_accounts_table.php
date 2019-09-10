@@ -20,12 +20,12 @@ class CreateAccountsTable extends Migration
             $table->string('code');
             $table->string('number');
             $table->string('address');
-            $table->string('tel');
-            $table->string('email');
-            $table->string('contact_person');
-            $table->string('designation');
-            $table->string('fax');
-            $table->text('purpose');
+            $table->string('tel')->nullable();
+            $table->string('email')->nullable();
+            $table->string('contact_person')->nullable();
+            $table->string('designation')->nullable();
+            $table->string('fax')->nullable();
+            $table->text('purpose')->nullable();
             $table->boolean('active')->default(1);
             $table->timestamps();
 
