@@ -38,7 +38,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::get('/', 'CheckController@index');
             Route::post('/create', 'CheckController@create');
             Route::post('/transmit', 'CheckController@transmit');
-            Route::post('/receive', 'CheckController@receive');
+            Route::post('/receive/{transmittal}', 'CheckController@receive');
             Route::post('/claim', 'CheckController@claim');
             Route::post('/clear', 'CheckController@clear');
             Route::patch('/return/{transmittal}', 'CheckController@return');
@@ -59,5 +59,10 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/payee-group', 'ToolController@payeeGroup');
         Route::get('/payees/{company}', 'ToolController@payees');
         Route::get('/accounts/{company}', 'ToolController@accounts');
+        Route::get('/series/{company}/{branch}', 'ToolController@series');
+        // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
+        // Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
+        // Route::get('/transmittals/received/{company}', 'ToolController@receivedTransmittals');
+        Route::get('/checks/{transmittal}', 'ToolController@checks');
     });
 });

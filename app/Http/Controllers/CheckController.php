@@ -76,7 +76,6 @@ class CheckController extends Controller
             'incharge' => 'required|exists:users,id',
             'date' => 'required|date',
             'ref' => 'required|unique:transmittals,ref',
-            'series' => 'required|integer',
             'checks' => 'required|array'
         ]);
 
@@ -93,7 +92,6 @@ class CheckController extends Controller
             'date' => $request->get('date'),
             'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y/m/d"),
             'ref' => $request->get('ref'),
-            'series' => $request->get('series'),
         ])->checks()->sync($checks);
         // record history and update status
         $checks->each( function($check) use ($request) {
@@ -105,8 +103,10 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully transmitted.'];
     }
 
-    public function receive(Request $request, Company $company)
+    public function receive(Request $request, Company $company, Transmittal $transmittal)
     {
+        // $checks = $transmittal->checks()->where('received', 0)->get();
+
         $request->validate(['checks' => 'required|array']);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -114,6 +114,8 @@ class CheckController extends Controller
         abort_unless($checks->count(), 400, "No check selected!");
 
         $this->authorize('receive', [Check::class, $company, $checks]);
+
+        // $transmittal->update([ 'received' => 1 ]); // update transmittal
 
         $checks->each( function($check) {
             $check->update(['received' => 1]);
@@ -167,7 +169,7 @@ class CheckController extends Controller
 
     public function return(Request $request, Company $company, Transmittal $transmittal)
     {
-        $checks = $transmittal->checks()->where("status_id", 2)->get(); /*transmitted*/
+        $checks = $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
         // must be greater than zero
         abort_unless($checks->count(), 400, "No checks available!");
 
@@ -188,7 +190,7 @@ class CheckController extends Controller
     {
         $request->validate([
             'checks' => 'required|array',
-            'remarks' => 'max:191',
+            'remarks' => 'required|max:191',
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -212,6 +214,7 @@ class CheckController extends Controller
 
         $this->authorize('show', [$check, $company]);
 
+        $check->status;
         $check->payee;
         $check->branch;
         $check->account;

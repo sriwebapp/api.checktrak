@@ -13,13 +13,13 @@ class StatusData extends Seeder
     public function run()
     {
         DB::table('statuses')->insert([
-            ['name' => 'Created'],
-            ['name' => 'Transmitted'],
-            ['name' => 'Claimed'],
-            ['name' => 'Returned'],
-            ['name' => 'Cancelled'],
-            ['name' => 'Cleared'],
-            ['name' => 'Staled'],
+            ['name' => 'Created', 'color' => 'indigo'],
+            ['name' => 'Transmitted', 'color' => 'blue'],
+            ['name' => 'Claimed', 'color' => 'purple'],
+            ['name' => 'Returned', 'color' => 'teal'],
+            ['name' => 'Cancelled', 'color' => 'red'],
+            ['name' => 'Cleared', 'color' => 'teal'],
+            ['name' => 'Staled', 'color' => 'orange'],
         ]);
     }
 }
