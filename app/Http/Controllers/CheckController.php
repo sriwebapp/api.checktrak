@@ -29,6 +29,7 @@ class CheckController extends Controller
             ->with('payee')
             ->with('account')
             ->with('branch')
+            ->with('history')
             ->orderBy('id', 'desc')
             ->get();
     }
@@ -61,7 +62,7 @@ class CheckController extends Controller
             'date' => $request->get('date'),
         ]);
 
-        $this->recordLog($check, 'crt');
+        $this->recordLog($check, 'crt', date('Y-m-d'));
 
         Log::info($request->user()->name . ' created new check.');
 
@@ -97,8 +98,10 @@ class CheckController extends Controller
         $checks->each( function($check) use ($request) {
             $check->update([ 'status_id' => 2, 'received' => 0, 'branch_id' => $request->get('branch_id')]); // transmitted
 
-            $this->recordLog($check, 'trm');
+            $this->recordLog($check, 'trm', $request->get('date'));
         });
+
+        Log::info($request->user()->name . ' transmitted checks.');
 
         return ['message' => 'Checks successfully transmitted.'];
     }
@@ -120,8 +123,10 @@ class CheckController extends Controller
         $checks->each( function($check) {
             $check->update(['received' => 1]);
 
-            $this->recordLog($check, 'rcv');
+            $this->recordLog($check, 'rcv', date('Y-m-d'));
         });
+
+        Log::info($request->user()->name . ' received checks.');
 
         return ['message' => 'Checks successfully received.'];
     }
@@ -129,6 +134,7 @@ class CheckController extends Controller
     public function claim(Request $request, Company $company)
     {
         $request->validate([
+            'date' => 'required|date',
             'checks' => 'required|array',
             'remarks' => 'max:191',
         ]);
@@ -142,8 +148,10 @@ class CheckController extends Controller
         $checks->each( function($check) use ($request) {
             $check->update(['status_id' => 3]);/*claimed*/
 
-            $this->recordLog($check, 'clm', $request->get('remarks'));
+            $this->recordLog($check, 'clm', $request->get('date'), $request->get('remarks'));
         });
+
+        Log::info($request->user()->name . ' claimed checks.');
 
         return ['message' => 'Checks successfully claimed.'];
     }
@@ -161,15 +169,20 @@ class CheckController extends Controller
         $checks->each( function($check) use ($request) {
             $check->update(['status_id' => 6]); /*cleared*/
 
-            $this->recordLog($check, 'clr');
+            $this->recordLog($check, 'clr', date('Y-m-d'));
         });
+
+        Log::info($request->user()->name . ' cleared checks.');
 
         return ['message' => 'Checks successfully cleared.'];
     }
 
     public function return(Request $request, Company $company)
     {
-        $request->validate(['transmittal_id' => 'required|exists:transmittals,id']);
+        $request->validate([
+            'date' => 'required|date',
+            'transmittal_id' => 'required|exists:transmittals,id'
+        ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
@@ -181,11 +194,13 @@ class CheckController extends Controller
 
         $transmittal->update([ 'returned' => Carbon::now() ]); // update transmittal
 
-        $checks->each( function($check) {
+        $checks->each( function($check) use ($request) {
             $check->update([ 'status_id' => 4, 'received' => 0, 'branch_id' => 1]); // returned
 
-            $this->recordLog($check, 'rtn');
+            $this->recordLog($check, 'rtn', $request->get('date'));
         });
+
+        Log::info($request->user()->name . ' returned checks.');
 
         return ['message' => 'Checks successfully returned.'];
     }
@@ -206,8 +221,10 @@ class CheckController extends Controller
         $checks->each( function($check) use ($request) {
             $check->update([ 'status_id' => 5]); // cancelled
 
-            $this->recordLog($check, 'cnl', $request->get('remarks'));
+            $this->recordLog($check, 'cnl', date('Y-m-d'), $request->get('remarks'));
         });
+
+        Log::info($request->user()->name . ' cancelled checks.');
 
         return ['message' => 'Checks cancelled.'];
     }
@@ -236,7 +253,9 @@ class CheckController extends Controller
 
         $check->update([ 'details' => $request->get('details') ]);
 
-        $this->recordLog($check, 'edt', 'Details: ' . $request->get('details') );
+        $this->recordLog($check, 'edt', date('Y-m-d'), 'Details: ' . $request->get('details') );
+
+        Log::info($request->user()->name . ' edited checks.');
 
         return ['message' => 'Check successfully updated.'];
     }
@@ -249,17 +268,20 @@ class CheckController extends Controller
 
         $check->delete();
 
-        $this->recordLog($check, 'dlt', $request->get('remarks'));
+        $this->recordLog($check, 'dlt', date('Y-m-d'), $request->get('remarks'));
+
+        Log::info($request->user()->name . ' deleted checks.');
 
         return ['message' => 'Check successfully deleted.'];
     }
     // record check log
-    protected function recordLog(Check $check, $action, $remarks = null)
+    protected function recordLog(Check $check, $action, $date, $remarks = null)
     {
         History::create([
             'check_id' => $check->id,
             'action_id' => Action::where('code', $action)->first()->id,
             'user_id' => Auth::user()->id,
+            'date' => $date,
             'remarks' => $remarks
         ]);
     }

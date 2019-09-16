@@ -18,6 +18,7 @@ class CreateCheckHistoryTable extends Migration
             $table->unsignedBigInteger('check_id');
             $table->unsignedBigInteger('action_id');
             $table->unsignedBigInteger('user_id');
+            $table->date('date');
             $table->string('remarks')->nullable();
             $table->timestamps();
 

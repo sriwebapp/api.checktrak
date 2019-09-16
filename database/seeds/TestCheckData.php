@@ -21,7 +21,7 @@ class TestCheckData extends Seeder
                     'account_id' => $accounts->random(),
                     'payee_id' => $accounts->random(),
                     'amount' => rand(1000 ,100000),
-                    'details' => 'Test Check Data',
+                    'details' => 'Test Check Data Test Check Data Test Check Data Test Check Data Test Check Data',
                     'date' => date("Y/m/d"),
                 ]);
             }
