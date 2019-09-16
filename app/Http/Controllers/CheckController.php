@@ -103,7 +103,7 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully transmitted.'];
     }
 
-    public function receive(Request $request, Company $company, Transmittal $transmittal)
+    public function receive(Request $request, Company $company/*, Transmittal $transmittal*/)
     {
         // $checks = $transmittal->checks()->where('received', 0)->get();
 
@@ -167,8 +167,12 @@ class CheckController extends Controller
         return ['message' => 'Checks successfully cleared.'];
     }
 
-    public function return(Request $request, Company $company, Transmittal $transmittal)
+    public function return(Request $request, Company $company)
     {
+        $request->validate(['transmittal_id' => 'required|exists:transmittals,id']);
+
+        $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
+
         $checks = $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
         // must be greater than zero
         abort_unless($checks->count(), 400, "No checks available!");

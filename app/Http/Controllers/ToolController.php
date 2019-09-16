@@ -34,9 +34,9 @@ class ToolController extends Controller
     public function checks(Transmittal $transmittal)
     {
         return $transmittal->checks()
-            ->where('received', 0)
-            ->orWhere('status_id', '<>', 3)
+            ->with('status')
             ->with('account')
+            ->with('payee')
             ->get();
     }
 
@@ -90,17 +90,27 @@ class ToolController extends Controller
         ];
     }
 
-    // public function sentTransmittals(Company $company)
-    // {
-    //     $transmittals = Auth::user()->branch->transmittals()
-    //         ->where('ref' , 'like', $company->code . '%')
-    //         ->where('returned', null)
-    //         ->where('received' , 0)
-    //         ->orderBy('id', 'desc')
-    //         ->get();
+    public function receivedTransmittals(Company $company)
+    {
+        $transmittals = Auth::user()->branch->transmittals()
+            ->where('ref' , 'like', $company->code . '%')
+            ->where('returned', null)
+            ->orderBy('id', 'desc')
+            ->with('checks')
+            ->get();
 
-    //     return $transmittals;
-    // }
+        return $transmittals->filter(function ($transmittal) {
+            $notClaimed = $transmittal->checks()
+                ->where('status_id', 2)
+                ->count();
+
+            $received = $transmittal->checks()
+                ->where('received', 0)
+                ->count() === 0;
+
+            return $notClaimed && $received;
+        });
+    }
 
     public function users()
     {

@@ -38,10 +38,10 @@ Route::middleware(['auth:api'])->group(function() {
             Route::get('/', 'CheckController@index');
             Route::post('/create', 'CheckController@create');
             Route::post('/transmit', 'CheckController@transmit');
-            Route::post('/receive/{transmittal}', 'CheckController@receive');
+            Route::post('/receive', 'CheckController@receive');
             Route::post('/claim', 'CheckController@claim');
             Route::post('/clear', 'CheckController@clear');
-            Route::patch('/return/{transmittal}', 'CheckController@return');
+            Route::post('/return', 'CheckController@return');
             Route::post('/cancel', 'CheckController@cancel');
             Route::get('/{check}', 'CheckController@show');
             Route::patch('/{check}', 'CheckController@edit');
@@ -62,7 +62,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/series/{company}/{branch}', 'ToolController@series');
         // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
         // Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
-        // Route::get('/transmittals/received/{company}', 'ToolController@receivedTransmittals');
+        Route::get('/transmittals/received/{company}', 'ToolController@receivedTransmittals');
         Route::get('/checks/{transmittal}', 'ToolController@checks');
     });
 });

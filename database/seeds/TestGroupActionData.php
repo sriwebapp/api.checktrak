@@ -17,7 +17,7 @@ class TestGroupActionData extends Seeder
         $head = Group::where('id', 3)->first();
         $branch = Group::where('id', 4)->first();
 
-        $admin->actions()->sync(Action::all());
+        $admin->actions()->sync(Action::where('id', '<>', 5)->get());
         $head->actions()->sync(Action::where('id', '<>', 5)->get());
         $branch->actions()->sync(Action::whereIn('id', [3, 4, 5])->get());
     }
