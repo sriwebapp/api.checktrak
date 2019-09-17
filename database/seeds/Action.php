@@ -13,15 +13,15 @@ class Action extends Seeder
     public function run()
     {
         DB::table('actions')->insert([
-            ['name' => 'Create', 'code' => 'crt'],
-            ['name' => 'Transmit', 'code' => 'trm'],
-            ['name' => 'Receive', 'code' => 'rcv'],
-            ['name' => 'Claim', 'code' => 'clm'],
-            ['name' => 'Return', 'code' => 'rtn'],
-            ['name' => 'Cancel', 'code' => 'cnl'],
-            ['name' => 'Clear', 'code' => 'clr'],
-            ['name' => 'Edit', 'code' => 'edt'],
-            ['name' => 'Delete', 'code' => 'dlt'],
+            ['name' => 'Create', 'code' => 'crt', 'color' => 'indigo'],
+            ['name' => 'Transmit', 'code' => 'trm', 'color' => 'blue'],
+            ['name' => 'Receive', 'code' => 'rcv', 'color' => 'green'],
+            ['name' => 'Claim', 'code' => 'clm', 'color' => 'purple'],
+            ['name' => 'Return', 'code' => 'rtn', 'color' => 'blue-grey'],
+            ['name' => 'Cancel', 'code' => 'cnl', 'color' => 'red'],
+            ['name' => 'Clear', 'code' => 'clr', 'color' => 'teal'],
+            ['name' => 'Edit', 'code' => 'edt', 'color' => 'orange'],
+            ['name' => 'Delete', 'code' => 'dlt', 'color' => 'red'],
         ]);
     }
 }

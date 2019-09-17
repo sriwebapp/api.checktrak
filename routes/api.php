@@ -35,7 +35,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::apiResource('/account', 'AccountController');
 
         Route::prefix('/check')->group( function() {
-            Route::get('/', 'CheckController@index');
+            Route::post('/', 'CheckController@index');
             Route::post('/create', 'CheckController@create');
             Route::post('/transmit', 'CheckController@transmit');
             Route::post('/receive', 'CheckController@receive');

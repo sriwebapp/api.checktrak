@@ -19,8 +19,14 @@ use Illuminate\Database\Eloquent\Collection;
 class CheckController extends Controller
 {
     // show all for dev
-    public function index(Company $company)
+    public function index(Request $request, Company $company)
     {
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+
+        $order = $request->get('sortDesc') ?
+            ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
+            'desc';
+
         $branches = Auth::user()->getBranches()->pluck('id');
 
         return $company->checks()
@@ -30,8 +36,8 @@ class CheckController extends Controller
             ->with('account')
             ->with('branch')
             ->with('history')
-            ->orderBy('id', 'desc')
-            ->get();
+            ->orderBy($sort, $order)
+            ->paginate($request->get('itemsPerPage'));
     }
 
     public function create(Request $request, Company $company)
@@ -240,7 +246,7 @@ class CheckController extends Controller
         $check->branch;
         $check->account;
         $check->transmittals;
-        $check->history = $check->history()->with('action')->get();
+        $check->history = $check->history()->with('action')->with('user')->get();
 
         return $check;
     }

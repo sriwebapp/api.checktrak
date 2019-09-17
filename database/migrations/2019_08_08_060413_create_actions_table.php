@@ -17,6 +17,7 @@ class CreateActionsTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('code', 10)->unique();
+            $table->string('color');
             // $table->timestamps();
         });
     }

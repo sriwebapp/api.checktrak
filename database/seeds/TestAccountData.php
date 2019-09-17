@@ -7,6 +7,6 @@ class TestAccountData extends Seeder
 {
     public function run()
     {
-        factory(Account::class, 20)->create();
+        factory(Account::class, 50)->create();
     }
 }

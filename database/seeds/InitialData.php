@@ -16,6 +16,7 @@ class InitialData extends Seeder
             'name' => 'System Administrator',
             'email' => 'sriwebapp@gmail.com',
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'branch_id' => 1, // head office
             'group_id' => 1, // system administrator
         ]);
 

@@ -21,6 +21,7 @@ class CheckPolicy
     {
         $transmittable = $checks->every( function($check) use ($company) {
             return $check->company == $company
+                && $check->received
                 && in_array($check->status_id, [1, 4]); /*created, returned*/
         });
 
