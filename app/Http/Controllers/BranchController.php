@@ -6,6 +6,7 @@ use App\User;
 use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
 class BranchController extends Controller
@@ -31,7 +32,12 @@ class BranchController extends Controller
         $request->validate([
             'code' => 'required|string|min:2|max:10|unique:branches',
             'name' => 'required|string|min:3|max:191|unique:branches',
-            'incharge_id' => /*required*/ 'integer|nullable|exists:users,id',
+            'incharge_id' => [
+                /*'required',*/
+                'integer',
+                'nullable',
+                Rule::in(User::where('active', 1)->pluck('id'))
+            ],
         ]);
 
         Branch::create([
@@ -61,7 +67,12 @@ class BranchController extends Controller
         $request->validate([
             'code' => 'required|string|min:2|max:10|unique:branches,code,' . $branch->id,
             'name' => 'required|string|min:3|max:191|unique:branches,name,' . $branch->id,
-            'incharge_id' => /*required*/ 'integer|nullable|exists:users,id',
+            'incharge_id' => [
+                /*'required',*/
+                'integer',
+                'nullable',
+                Rule::in(User::where('active', 1)->pluck('id'))
+            ],
         ]);
 
         $branch->update([

@@ -68,7 +68,7 @@ class CheckController extends Controller
             'date' => $request->get('date'),
         ]);
 
-        $this->recordLog($check, 'crt', date('Y-m-d'));
+        $this->recordLog($check, 'crt', $request->get('date'));
 
         Log::info($request->user()->name . ' created new check.');
 

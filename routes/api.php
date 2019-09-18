@@ -34,6 +34,9 @@ Route::middleware(['auth:api'])->group(function() {
         Route::apiResource('/payee', 'PayeeController');
         Route::apiResource('/account', 'AccountController');
 
+        Route::get('/transmittal', 'TransmittalController@index');
+        Route::get('/transmittal/{transmittal}', 'TransmittalController@show');
+
         Route::prefix('/check')->group( function() {
             Route::post('/', 'CheckController@index');
             Route::post('/create', 'CheckController@create');

@@ -114,6 +114,6 @@ class ToolController extends Controller
 
     public function users()
     {
-        return User::get();
+        return User::where('active', 1)->get();
     }
 }

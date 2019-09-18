@@ -14,7 +14,7 @@ class TestCheckData extends Seeder
             $accounts = $company->accounts()->pluck('id');
             $payees = $company->payees->pluck('id');
 
-            for ($i=0; $i < 1000; $i++) {
+            for ($i=0; $i < 200; $i++) {
                 Check::insert([
                     'number' => rand(10000000 ,9999999999),
                     'status_id' => 1, /*created*/
