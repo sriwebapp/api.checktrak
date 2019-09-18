@@ -32,6 +32,7 @@ class UserController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:191',
+            'username' => 'required|string|max:20|unique:users',
             'email' => 'required|string|email|max:191|unique:users',
             'branch_id' => 'required|integer|exists:branches,id',
             'group_id' => 'required|integer|exists:groups,id',
@@ -67,11 +68,12 @@ class UserController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:191',
+            'username' => 'required|string|max:20|unique:users,username,' . $user->id,
             'email' => 'required|string|email|max:191|unique:users,email,' . $user->id,
             'branch_id' => 'required|integer|exists:branches,id',
         ]);
 
-        $user->update($request->only('name', 'email', 'branch_id'));
+        $user->update($request->only('name', 'username', 'email', 'branch_id', 'active'));
 
         Log::info($request->user()->name . ' updated a user: ' . $user->email);
 

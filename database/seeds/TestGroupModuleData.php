@@ -13,12 +13,12 @@ class TestGroupModuleData extends Seeder
      */
     public function run()
     {
-        $admins = Group::where('id', 2)->get();
+        // $admins = Group::where('id', 2)->get();
         $users = Group::where('id', 3)->get();
 
-        $admins->map( function($admin) {
-            return $admin->modules()->sync(Module::get());
-        });
+        // $admins->map( function($admin) {
+        //     return $admin->modules()->sync(Module::get());
+        // });
 
         $users->map( function($user) {
             return $user->modules()->sync( Module::whereId(6)->get() );

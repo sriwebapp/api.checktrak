@@ -10,8 +10,8 @@ $factory->define(Payee::class, function (Faker $faker) {
         'name' => $faker->name,
         'code' => $faker->unique()->word,
         'desc' => $faker->jobTitle,
-        // 'company_id' => $faker->numberBetween($min = 1, $max = 6),
-        'company_id' => 1,
+        'company_id' => $faker->numberBetween($min = 1, $max = 6),
+        // 'company_id' => 1,
         'payee_group_id' => $faker->numberBetween($min = 1, $max = 5),
     ];
 });

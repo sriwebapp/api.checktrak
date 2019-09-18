@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
 use App\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -12,10 +13,23 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'email' => 'required|email',
+            'username' => 'required',
             'password' => 'required|min:6',
             'company_id' => 'required|exists:companies,id'
         ]);
+
+        $user = User::where('active', 1)
+            ->where( function($query) use ($request) {
+                $query->where('email', $request->get('username'))
+                    ->orWhere('username', $request->get('username'));
+            })->first();
+
+        if(! $user) {
+            return response()->json([
+                'message' => 'Your credentials are incorrect. Please try again.',
+                'errors' => [ 'username' => ['Your credentials are incorrect. Please try again.'] ]
+            ], 422);
+        }
 
         $http = new \GuzzleHttp\Client;
 
@@ -25,12 +39,12 @@ class AuthController extends Controller
                     'grant_type' => 'password',
                     'client_id' => config('services.passport.id'),
                     'client_secret' => config('services.passport.secret'),
-                    'username' => $request->get('email'),
+                    'username' => $user->email,
                     'password' => $request->get('password'),
                 ],
             ]);
 
-            Log::info($request->get('email') . ' signed in.');
+            Log::info($user->name . ' signed in.');
 
             return [
                 'token' => json_decode($response->getBody(), true),
@@ -42,13 +56,13 @@ class AuthController extends Controller
             if ($e->getCode() === 400) {
                 $message = 'Invalid Request. Please enter a username or a password.';
             } else if ($e->getCode() === 401) {
-                $message = 'Your credentials are incorrect. Please try again';
+                $message = 'Your credentials are incorrect. Please try again.';
             } else {
                 $message = 'Something went wrong on the server.';
             }
             return response()->json([
                     'message' => $message,
-                    'errors' => [ 'email' => [$message] ]
+                    'errors' => [ 'username' => [$message] ]
                 ], 422);
         }
     }

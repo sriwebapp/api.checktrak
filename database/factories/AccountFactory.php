@@ -7,8 +7,8 @@ use Faker\Generator as Faker;
 
 $factory->define(Account::class, function (Faker $faker) {
     return [
-        // 'company_id' => $faker->numberBetween($min = 1, $max = 6),
-        'company_id' => 1,
+        'company_id' => $faker->numberBetween($min = 1, $max = 6),
+        // 'company_id' => 1,
         'bank' => 'BDO',
         'code' => 'BDO-' . $faker->numberBetween($min = 10, $max = 99),
         'number' => $faker->creditCardNumber,
