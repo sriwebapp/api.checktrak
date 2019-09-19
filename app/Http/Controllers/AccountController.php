@@ -32,7 +32,7 @@ class AccountController extends Controller
 
         $request->validate([
             'bank' => 'required|min:2|max:5',
-            'number' => 'required|integer|min:10|unique2:accounts,number,bank,' . $bank,
+            'number' => 'required|min:10|unique2:accounts,number,bank,' . $bank,
             'address' => 'required|string|max:191',
             'tel' => /*required*/ 'max:50',
             'email' => /*required*/ 'email|nullable',
@@ -78,7 +78,7 @@ class AccountController extends Controller
 
         $request->validate([
             'bank' => 'required|min:2|max:5',
-            'number' => 'required|integer|min:10',
+            'number' => 'required|min:10',
             'address' => 'required|string|max:191',
             'tel' => /*required*/ 'max:50',
             'email' => /*required*/ 'email|nullable',
