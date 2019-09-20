@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
-use App\Group;
+use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
@@ -50,9 +50,9 @@ class ToolController extends Controller
         return Company::get();
     }
 
-    public function groups()
+    public function access()
     {
-        return Group::with('actions')->with('branches')->with('modules')->get();
+        return Access::with('actions')->with('branches')->with('modules')->get();
     }
 
     public function modules()

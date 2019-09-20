@@ -18,7 +18,7 @@ class InitialData extends Seeder
             'email' => 'sriwebapp@gmail.com',
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'branch_id' => 1, // head office
-            'group_id' => 1, // system administrator
+            'access_id' => 1, // system administrator
         ]);
 
         User::create([
@@ -26,7 +26,7 @@ class InitialData extends Seeder
             'username' => 'mich',
             'email' => 'michelle.villa@serviceresourcesinc.com',
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
-            'group_id' => 2, // administrator
+            'access_id' => 2, // administrator
             'branch_id' => 1, // head office
         ]);
     }

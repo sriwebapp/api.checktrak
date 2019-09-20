@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Group extends Model
+class Access extends Model
 {
     protected $guarded = [];
 
@@ -15,17 +15,17 @@ class Group extends Model
 
     public function branches()
     {
-        return $this->belongsToMany(Branch::class, 'group_branch', 'group_id');
+        return $this->belongsToMany(Branch::class, 'access_branch', 'access_id');
     }
 
     public function actions()
     {
-        return $this->belongsToMany(Action::class, 'group_action', 'group_id');
+        return $this->belongsToMany(Action::class, 'access_action', 'access_id');
     }
 
     public function modules()
     {
-        return $this->belongsToMany(Module::class, 'group_module', 'group_id');
+        return $this->belongsToMany(Module::class, 'access_module', 'access_id');
     }
 
     public function getBranches()

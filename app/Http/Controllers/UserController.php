@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
-use App\Group;
+use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
@@ -23,7 +23,7 @@ class UserController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return User::with('branch')->with('group')->get();
+        return User::with('branch')->with('access')->get();
     }
 
     public function store(Request $request)
@@ -35,7 +35,7 @@ class UserController extends Controller
             'username' => 'required|string|max:20|unique:users',
             'email' => 'required|string|email|max:191|unique:users',
             'branch_id' => 'required|integer|exists:branches,id',
-            'group_id' => 'required|integer|exists:groups,id',
+            'access_id' => 'required|integer|exists:accesses,id',
         ]);
 
         $request['password'] = bcrypt(config('app.default_pass'));
@@ -54,7 +54,7 @@ class UserController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        $user->group;
+        $user->access;
         $user->actions;
         $user->modules;
         $user->branches;
@@ -89,15 +89,15 @@ class UserController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        $request->validate(['group_id' => 'required|integer|exists:groups,id']);
+        $request->validate(['access_id' => 'required|integer|exists:accesses,id']);
 
-        $group = Group::find($request->get('group_id'));
+        $access = Access::find($request->get('access_id'));
 
-        $group->users()->save($user);
+        $access->users()->save($user);
 
-        $actions = ! $group->action ? Action::whereIn('code', $request->get('actions'))->get() : [];
-        $branches = ! $group->branch ? Branch::whereIn('code', $request->get('branches'))->get() : [];
-        $modules = ! $group->module ? Module::whereIn('code', $request->get('modules'))->get() : [];
+        $actions = ! $access->action ? Action::whereIn('code', $request->get('actions'))->get() : [];
+        $branches = ! $access->branch ? Branch::whereIn('code', $request->get('branches'))->get() : [];
+        $modules = ! $access->module ? Module::whereIn('code', $request->get('modules'))->get() : [];
 
         $user->actions()->sync($actions);
         $user->branches()->sync($branches);

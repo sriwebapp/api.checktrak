@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateGroupActionTable extends Migration
+class CreateAccessBranchTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,14 @@ class CreateGroupActionTable extends Migration
      */
     public function up()
     {
-        Schema::create('group_action', function (Blueprint $table) {
+        Schema::create('access_branch', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->unsignedBigInteger('group_id');
-            $table->unsignedBigInteger('action_id');
+            $table->unsignedBigInteger('access_id');
+            $table->unsignedBigInteger('branch_id');
             // $table->timestamps();
 
-            $table->foreign('group_id')->references('id')->on('groups');
-            $table->foreign('action_id')->references('id')->on('actions');
+            $table->foreign('access_id')->references('id')->on('accesses');
+            $table->foreign('branch_id')->references('id')->on('branches');
         });
     }
 
@@ -31,6 +31,6 @@ class CreateGroupActionTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('group_action');
+        Schema::dropIfExists('accesses_branch');
     }
 }

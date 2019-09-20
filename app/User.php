@@ -14,7 +14,7 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'name', 'username', 'email', 'password', 'branch_id', 'group_id', 'active'
+        'name', 'username', 'email', 'password', 'branch_id', 'access_id', 'active'
     ];
 
     protected $hidden = [
@@ -30,9 +30,9 @@ class User extends Authenticatable
         $this->notify(new ResetPasswordNotification($token));
     }
 
-    public function group()
+    public function access()
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(Access::class);
     }
 
     public function branch()
@@ -57,26 +57,26 @@ class User extends Authenticatable
 
     public function getBranches()
     {
-        return $this->group->branch ?
-            $this->group->getBranches() :
+        return $this->access->branch ?
+            $this->access->getBranches() :
             $this->branches;
     }
 
     public function getActions()
     {
-        return $this->group->action ?
-            $this->group->getActions() :
+        return $this->access->action ?
+            $this->access->getActions() :
             $this->actions;
     }
 
     public function getModules()
     {
-        return $this->group->module ?
-            $this->group->getModules() :
+        return $this->access->module ?
+            $this->access->getModules() :
             $this->modules;
     }
 
-    public function access()
+    public function accessibility()
     {
         $this->branch;
         $this->branchAccess = $this->getBranches()->pluck('code');

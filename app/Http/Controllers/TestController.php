@@ -20,16 +20,8 @@ class TestController extends Controller
 
     public function index(Request $request)
     {
-        // return $branch->inCharge;
-
-        $check = Check::withTrashed()->findOrFail($request->get('id'));
-
-        $check->history;
-
-        return $check;
-
         $user = User::findOrFail($request->get('id'));
 
-        return $user->getActions()->where('code', 'crts')->count();
+        return $user->accessibility();
     }
 }

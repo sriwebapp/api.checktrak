@@ -13,7 +13,7 @@ class TestUserActionData extends Seeder
      */
     public function run()
     {
-        $users = User::where('group_id', 5)->get();
+        $users = User::where('access_id', 5)->get();
 
         $users->map( function($user) {
             return $user->actions()->sync( Action::whereIn('id', [1, 5, 6])->get() );

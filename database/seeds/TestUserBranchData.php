@@ -13,7 +13,7 @@ class TestUserBranchData extends Seeder
      */
     public function run()
     {
-        $users = User::whereNotIn('group_id', [1, 2, 3])->get();
+        $users = User::whereNotIn('access_id', [1, 2, 3])->get();
 
         $users->map( function ( $user ) {
             $branches = Branch::where('incharge_id', $user->id)->get();

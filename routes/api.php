@@ -26,7 +26,7 @@ Route::middleware(['auth:api'])->group(function() {
     Route::apiResource('/user', 'UserController');
     Route::post('/user/{user}/access', 'UserController@access');
 
-    Route::apiResource('/group', 'GroupController');
+    Route::apiResource('/access', 'AccessController');
     Route::apiResource('/company', 'CompanyController');
     Route::apiResource('/branch', 'BranchController');
 
@@ -56,7 +56,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/actions', "ToolController@actions");
         Route::get('/branches', "ToolController@branches");
         Route::get('/company/{company}', 'ToolController@company');
-        Route::get('/groups', "ToolController@groups");
+        Route::get('/access', "ToolController@access");
         Route::get('/modules', "ToolController@modules");
         Route::get('/users', 'ToolController@users');
         Route::get('/payee-group', 'ToolController@payeeGroup');

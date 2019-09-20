@@ -1,10 +1,10 @@
 <?php
 
-use App\Group;
+use App\Access;
 use App\Module;
 use Illuminate\Database\Seeder;
 
-class TestGroupModuleData extends Seeder
+class TestAccessModuleData extends Seeder
 {
     /**
      * Run the database seeds.
@@ -13,8 +13,8 @@ class TestGroupModuleData extends Seeder
      */
     public function run()
     {
-        // $admins = Group::where('id', 2)->get();
-        $users = Group::where('id', 3)->get();
+        // $admins = Access::where('id', 2)->get();
+        $users = Access::where('id', 3)->get();
 
         // $admins->map( function($admin) {
         //     return $admin->modules()->sync(Module::get());

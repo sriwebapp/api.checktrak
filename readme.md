@@ -27,3 +27,9 @@
 -   Record head office first in branches
 -   Consider Check receiving by transmittals
 -   Modify receiving based on branch if transmitted
+
+### todo 09-20-2019
+- rename group to access -- ok
+- groups under branches
+- multiple incharge per group
+

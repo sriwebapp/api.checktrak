@@ -1,14 +1,14 @@
 <?php
 
-use App\Group;
+use App\Access;
 use App\Branch;
 use Illuminate\Database\Seeder;
 
-class TestGroupBranchData extends Seeder
+class TestAccessBranchData extends Seeder
 {
     public function run()
     {
-        $admin = Group::where('id', 3)->first();
+        $admin = Access::where('id', 3)->first();
 
         $admin->branches()->sync(Branch::get());
     }

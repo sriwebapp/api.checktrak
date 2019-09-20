@@ -3,7 +3,7 @@
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class Module extends Seeder
+class ModuleData extends Seeder
 {
     /**
      * Run the database seeds.
@@ -14,7 +14,7 @@ class Module extends Seeder
     {
         DB::table('modules')->insert([
             ['name' => 'User', 'code' => 'usr'],
-            ['name' => 'Group', 'code' => 'grp'],
+            ['name' => 'Access', 'code' => 'acs'],
             ['name' => 'Company', 'code' => 'cmp'],
             ['name' => 'Branch', 'code' => 'bra'],
             ['name' => 'Account', 'code' => 'acc'],

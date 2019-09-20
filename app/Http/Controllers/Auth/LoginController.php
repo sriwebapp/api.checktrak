@@ -46,7 +46,7 @@ class LoginController extends Controller
         if (Auth::attempt([
             'email' => $request->get('email'),
             'password' => $request->get('password'),
-            'group_id' => 1,
+            'access_id' => 1,
         ], $request->filled('remember'))) {
             return $this->sendLoginResponse($request);
         }

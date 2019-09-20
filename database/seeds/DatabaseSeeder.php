@@ -11,16 +11,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call(Group::class);
+        $this->call(AccessData::class);
         $this->call(StatusData::class);
-        $this->call(Action::class);
+        $this->call(ActionData::class);
         $this->call(PayeeGroup::class);
-        $this->call(Module::class);
+        $this->call(ModuleData::class);
         $this->call(BranchData::class);
         $this->call(InitialData::class);
         $this->call(CompanyData::class);
-        // $this->call(TestGroupBranchData::class);
-        $this->call(TestGroupModuleData::class);
-        $this->call(TestGroupActionData::class);
+        // $this->call(TestAccessBranchData::class);
+        $this->call(TestAccessModuleData::class);
+        $this->call(TestAccessActionData::class);
     }
 }
