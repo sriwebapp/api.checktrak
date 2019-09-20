@@ -109,7 +109,7 @@ class ToolController extends Controller
                 ->count() === 0;
 
             return $notClaimed && $received;
-        });
+        })->values()->all();
     }
 
     public function users()

@@ -57,13 +57,11 @@ class CheckPolicy
         return $claimable && $accessible;
     }
 
-    public function clear(User $user, Company $company, Collection $checks)
+    public function clear(User $user, Check $check, Company $company)
     {
-        $clearable = $checks->every( function($check) use ($company, $user) {
-            return $check->company == $company
+        $clearable = $check->company == $company
                 && $user->getBranches()->where('id', $check->branch->id )->count()
                 && $check->status_id === 3; /*claimed*/
-        });
 
         $accessible = $user->getActions()->where('code', 'clr')->count();
 
@@ -87,7 +85,8 @@ class CheckPolicy
         $cancelable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
                 && $user->getBranches()->where('id', $check->branch->id )->count()
-                && ! in_array($check->status_id, [5, 6, 7]); /*cancelled, cleared, staled*/
+                && $check->received
+                && in_array($check->status_id, [1, 4]); /*created, returned*/
         });
 
         $accessible = $user->getActions()->where('code', 'cnl')->count();

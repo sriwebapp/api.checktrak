@@ -126,10 +126,10 @@ class CheckController extends Controller
 
         // $transmittal->update([ 'received' => 1 ]); // update transmittal
 
-        $checks->each( function($check) {
+        $checks->each( function($check) use ($request) {
             $check->update(['received' => 1]);
 
-            $this->recordLog($check, 'rcv', date('Y-m-d'));
+            $this->recordLog($check, 'rcv', $request->get('date'), $request->get('remarks'));
         });
 
         Log::info($request->user()->name . ' received checks.');
@@ -164,19 +164,21 @@ class CheckController extends Controller
 
     public function clear(Request $request, Company $company)
     {
-        $request->validate(['checks' => 'required|array']);
+        $request->validate([
+            'check' => 'required',
+            'date' => 'required|date',
+            'amount' => 'required|numeric|gt:0',
+        ]);
 
-        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        $check = Check::where('id', $request->get('check'))->first();
         // must be greater than zero
-        abort_unless($checks->count(), 400, "No check selected!");
+        abort_unless($check, 400, "No check selected!");
 
-        $this->authorize('clear', [Check::class, $company, $checks]);
+        $this->authorize('clear', [$check, $company]);
 
-        $checks->each( function($check) use ($request) {
-            $check->update(['status_id' => 6]); /*cleared*/
+        $check->update(['status_id' => 6, 'cleared' => $request->get('amount')]); /*cleared*/
 
-            $this->recordLog($check, 'clr', date('Y-m-d'));
-        });
+        $this->recordLog($check, 'clr', $request->get('date'));
 
         Log::info($request->user()->name . ' cleared checks.');
 
@@ -214,6 +216,7 @@ class CheckController extends Controller
     public function cancel(Request $request, Company $company)
     {
         $request->validate([
+            'date' => 'required|date',
             'checks' => 'required|array',
             'remarks' => 'required|max:191',
         ]);
@@ -227,7 +230,7 @@ class CheckController extends Controller
         $checks->each( function($check) use ($request) {
             $check->update([ 'status_id' => 5]); // cancelled
 
-            $this->recordLog($check, 'cnl', date('Y-m-d'), $request->get('remarks'));
+            $this->recordLog($check, 'cnl', $request->get('date'), $request->get('remarks'));
         });
 
         Log::info($request->user()->name . ' cancelled checks.');

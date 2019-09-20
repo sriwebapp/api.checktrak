@@ -23,6 +23,7 @@ class CreateChecksTable extends Migration
             $table->unsignedBigInteger('branch_id')->default(1); /*head office*/
             $table->boolean('received')->default(1);
             $table->decimal('amount', 20, 2);
+            $table->decimal('cleared', 20, 2)->nullable();
             $table->string('details')->nullable();
             $table->date('date');
             $table->softDeletes();
