@@ -29,6 +29,7 @@ Route::middleware(['auth:api'])->group(function() {
     Route::apiResource('/access', 'AccessController');
     Route::apiResource('/company', 'CompanyController');
     Route::apiResource('/branch', 'BranchController');
+    Route::apiResource('/group', 'GroupController');
 
     Route::prefix('/{company}')->group( function() {
         Route::apiResource('/payee', 'PayeeController');
@@ -55,6 +56,7 @@ Route::middleware(['auth:api'])->group(function() {
     Route::prefix('/tools')->group( function() {
         Route::get('/actions', "ToolController@actions");
         Route::get('/branches', "ToolController@branches");
+        Route::get('/groups', "ToolController@groups");
         Route::get('/company/{company}', 'ToolController@company');
         Route::get('/access', "ToolController@access");
         Route::get('/modules', "ToolController@modules");
@@ -62,7 +64,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/payee-group', 'ToolController@payeeGroup');
         Route::get('/payees/{company}', 'ToolController@payees');
         Route::get('/accounts/{company}', 'ToolController@accounts');
-        Route::get('/series/{company}/{branch}', 'ToolController@series');
+        Route::get('/transmittalRef/{company}/{branch}', 'ToolController@transmittalRef');
         // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
         // Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
         Route::get('/transmittals/received/{company}', 'ToolController@receivedTransmittals');

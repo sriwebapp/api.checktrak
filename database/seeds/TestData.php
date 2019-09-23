@@ -20,6 +20,7 @@ class TestData extends Seeder
         // $this->call(TestAccessActionData::class);
         // $this->call(TestUserActionData::class);
         // $this->call(TestCompanyData::class);
+        $this->call(TestGroupData::class);
         $this->call(TestAccountData::class);
         $this->call(TestPayeeData::class);
         $this->call(TestCheckData::class);

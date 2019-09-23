@@ -18,6 +18,11 @@ class Transmittal extends Model
         return $this->belongsTo(Branch::class);
     }
 
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Group;
 use App\Access;
 use App\Action;
-use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -35,7 +35,7 @@ class AccessController extends Controller
         $this->authorize('module', $this->module);
 
         $access->actions;
-        $access->branches;
+        $access->groups;
         $access->modules;
 
         return $access;
@@ -47,18 +47,18 @@ class AccessController extends Controller
 
         $request->validate([
             'action' => 'required|integer',
-            'branch' => 'required|integer',
+            'group' => 'required|integer',
             'module' => 'required|integer',
         ]);
 
-        $access->update($request->only(['action', 'branch', 'module']));
+        $access->update($request->only(['action', 'group', 'module']));
 
         $actions = $request->get('action') === 1 ? Action::whereIn('code', $request->get('actions'))->get() : [];
-        $branches = $request->get('branch') === 1 ? Branch::whereIn('code', $request->get('branches'))->get() : [];
+        $groups = $request->get('group') === 1 ? Group::whereIn('id', $request->get('groups'))->get() : [];
         $modules = $request->get('module') === 1 ? Module::whereIn('code', $request->get('modules'))->get() : [];
 
         $access->actions()->sync($actions);
-        $access->branches()->sync($branches);
+        $access->groups()->sync($groups);
         $access->modules()->sync($modules);
 
         Log::info($request->user()->name . ' updated accessibility: ' . $access->name);

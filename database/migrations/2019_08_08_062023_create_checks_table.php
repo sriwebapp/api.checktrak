@@ -20,7 +20,8 @@ class CreateChecksTable extends Migration
             $table->unsignedBigInteger('company_id');
             $table->unsignedBigInteger('account_id');
             $table->unsignedBigInteger('payee_id');
-            $table->unsignedBigInteger('branch_id')->default(1); /*head office*/
+            $table->unsignedBigInteger('group_id')->default(1); /*head office*/
+            $table->unsignedBigInteger('branch_id')->default(1); /*disbursement*/
             $table->boolean('received')->default(1);
             $table->decimal('amount', 20, 2);
             $table->decimal('cleared', 20, 2)->nullable();

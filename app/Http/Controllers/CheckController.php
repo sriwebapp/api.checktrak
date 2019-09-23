@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\Check;
+use App\Group;
 use App\Action;
 use App\Branch;
 use App\Company;
@@ -27,13 +28,14 @@ class CheckController extends Controller
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
 
-        $branches = Auth::user()->getBranches()->pluck('id');
+        $groups = Auth::user()->getGroups()->pluck('id');
 
         return $company->checks()
-            ->whereIn('branch_id', $branches)
+            ->whereIn('group_id', $groups)
             ->with('status')
             ->with('payee')
             ->with('account')
+            ->with('group')
             ->with('branch')
             ->with('history')
             ->orderBy($sort, $order)
@@ -79,10 +81,11 @@ class CheckController extends Controller
     {
         // validate
         $request->validate([
-            'branch_id' => ['required', Rule::in(Branch::where('id', '<>', 1)->pluck('id')) ],
+            'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
             'incharge' => 'required|exists:users,id',
             'date' => 'required|date',
             'ref' => 'required|unique:transmittals,ref',
+            'series' => 'required',
             'checks' => 'required|array'
         ]);
 
@@ -91,18 +94,29 @@ class CheckController extends Controller
         abort_unless($checks->count(), 400, "No check selected!");
         // check authorization
         $this->authorize('transmit', [Check::class, $company, $checks]);
+        // get group
+        $group = Group::find($request->get('group_id'));
         // create transmittal
         Transmittal::create([
-            'branch_id' => $request->get('branch_id'),
+            'group_id' => $group->id,
+            'branch_id' => $group->branch->id,
+            'company_id' => $company->id,
+            'year' => date('Y'),
+            'series' => $request->get('series'),
             'user_id' => $request->user()->id,
             'incharge' => $request->get('incharge'),
             'date' => $request->get('date'),
             'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y/m/d"),
-            'ref' => $request->get('ref'),
+            'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
         ])->checks()->sync($checks);
         // record history and update status
-        $checks->each( function($check) use ($request) {
-            $check->update([ 'status_id' => 2, 'received' => 0, 'branch_id' => $request->get('branch_id')]); // transmitted
+        $checks->each( function($check) use ($request, $group) {
+            $check->update([
+                'status_id' => 2,
+                'received' => 0,
+                'group_id' => $group->id,
+                'branch_id' => $group->branch->id
+            ]); // transmitted
 
             $this->recordLog($check, 'trm', $request->get('date'));
         });
@@ -203,7 +217,12 @@ class CheckController extends Controller
         $transmittal->update([ 'returned' => Carbon::now() ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
-            $check->update([ 'status_id' => 4, 'received' => 0, 'branch_id' => 1]); // returned
+            $check->update([
+                'status_id' => 4,
+                'received' => 0,
+                'group_id' => 1,
+                'branch_id' => 1
+            ]); // returned
 
             $this->recordLog($check, 'rtn', $request->get('date'));
         });
@@ -246,6 +265,7 @@ class CheckController extends Controller
 
         $check->status;
         $check->payee;
+        $check->group;
         $check->branch;
         $check->account;
         $check->transmittals;

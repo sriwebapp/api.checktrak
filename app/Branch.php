@@ -8,14 +8,14 @@ class Branch extends Model
 {
     protected $guarded = [];
 
-    public function incharge()
-    {
-        return $this->belongsTo(User::class, 'incharge_id');
-    }
-
     public function users()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function groups()
+    {
+        return $this->hasMany(Group::class);
     }
 
     public function transmittals()

@@ -36,6 +36,11 @@ class Check extends Model
         return $this->belongsToMany(Transmittal::class);
     }
 
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
+
     public function branch()
     {
         return $this->belongsTo(Branch::class);

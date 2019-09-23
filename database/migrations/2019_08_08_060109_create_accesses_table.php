@@ -18,7 +18,7 @@ class CreateAccessesTable extends Migration
             $table->string('name');
             $table->string('desc')->nullable();
             $table->tinyInteger('action')->default(1);
-            $table->tinyInteger('branch')->default(1);
+            $table->tinyInteger('group')->default(1);
             $table->tinyInteger('module')->default(1);
             $table->timestamps();
         });

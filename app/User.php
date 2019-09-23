@@ -40,9 +40,9 @@ class User extends Authenticatable
         return $this->belongsTo(Branch::class);
     }
 
-    public function branches()
+    public function groups()
     {
-        return $this->belongsToMany(Branch::class, 'user_branch', 'user_id');
+        return $this->belongsToMany(Group::class, 'user_group', 'user_id');
     }
 
     public function actions()
@@ -55,11 +55,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Module::class, 'user_module', 'user_id');
     }
 
-    public function getBranches()
+    public function getGroups()
     {
-        return $this->access->branch ?
-            $this->access->getBranches() :
-            $this->branches;
+        return $this->access->group ?
+            $this->access->getGroups() :
+            $this->groups;
     }
 
     public function getActions()
@@ -79,7 +79,7 @@ class User extends Authenticatable
     public function accessibility()
     {
         $this->branch;
-        $this->branchAccess = $this->getBranches()->pluck('code');
+        $this->groupAccess = $this->getGroups()->pluck('id');
         $this->actionAccess = $this->getActions()->pluck('code');
         $this->moduleAccess = $this->getModules()->pluck('code');
 

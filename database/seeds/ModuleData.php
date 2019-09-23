@@ -17,6 +17,7 @@ class ModuleData extends Seeder
             ['name' => 'Access', 'code' => 'acs'],
             ['name' => 'Company', 'code' => 'cmp'],
             ['name' => 'Branch', 'code' => 'bra'],
+            ['name' => 'Group', 'code' => 'grp'],
             ['name' => 'Account', 'code' => 'acc'],
             ['name' => 'Payee', 'code' => 'pye'],
         ]);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Group;
 use App\Access;
 use App\Action;
 use App\Branch;
@@ -31,6 +32,11 @@ class ToolController extends Controller
         return Branch::get();
     }
 
+    public function groups()
+    {
+        return Group::get();
+    }
+
     public function checks(Transmittal $transmittal)
     {
         return $transmittal->checks()
@@ -52,7 +58,7 @@ class ToolController extends Controller
 
     public function access()
     {
-        return Access::with('actions')->with('branches')->with('modules')->get();
+        return Access::with('actions')->with('groups')->with('modules')->get();
     }
 
     public function modules()
@@ -70,32 +76,36 @@ class ToolController extends Controller
         return PayeeGroup::get();
     }
 
-    public function series(Company $company, Branch $branch)
+    public function transmittalRef(Company $company, Branch $branch)
     {
         $year = date('Y');
 
-        $transmittal = $branch->transmittals()
-            ->where('ref' , 'like', $company->code . '%')
-            ->where('ref' , 'like', '%' . $year . '%')
+        $transmittal = $company->transmittals()
+            ->where('branch_id', $branch->id)
+            ->where('year', $year)
             ->orderBy('id', 'desc')
             ->first();
 
         $series = $transmittal ?
-            sprintf('%04s', explode('-', $transmittal->ref)[3] + 1) :
+            sprintf('%04s', $transmittal->series + 1) :
             '0000';
 
         return [
+            'series' => $series,
             'ref' => $company->code . '-' . $branch->code . '-' . $year . '-' . $series,
-            'incharge' => $branch->incharge_id
+            'groups' => $branch->groups,
         ];
     }
 
     public function receivedTransmittals(Company $company)
     {
-        $transmittals = Auth::user()->branch->transmittals()
-            ->where('ref' , 'like', $company->code . '%')
-            ->where('returned', null)
+        $groups = Auth::user()->getGroups()->pluck('id');
+
+        $transmittals = $company->transmittals()
+            ->where('branch_id', Auth::user()->branch->id)
+            ->whereIn('group_id', $groups)
             ->orderBy('id', 'desc')
+            ->where('returned', null)
             ->with('checks')
             ->get();
 

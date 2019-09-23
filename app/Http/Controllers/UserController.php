@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Group;
 use App\Access;
 use App\Action;
 use App\Branch;
@@ -57,7 +58,7 @@ class UserController extends Controller
         $user->access;
         $user->actions;
         $user->modules;
-        $user->branches;
+        $user->groups;
 
         return $user;
     }
@@ -96,11 +97,11 @@ class UserController extends Controller
         $access->users()->save($user);
 
         $actions = ! $access->action ? Action::whereIn('code', $request->get('actions'))->get() : [];
-        $branches = ! $access->branch ? Branch::whereIn('code', $request->get('branches'))->get() : [];
+        $groups = ! $access->group ? Group::whereIn('id', $request->get('groups'))->get() : [];
         $modules = ! $access->module ? Module::whereIn('code', $request->get('modules'))->get() : [];
 
         $user->actions()->sync($actions);
-        $user->branches()->sync($branches);
+        $user->groups()->sync($groups);
         $user->modules()->sync($modules);
 
         Log::info($request->user()->name . ' updated a user access: ' . $user->email);

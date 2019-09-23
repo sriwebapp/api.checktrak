@@ -13,11 +13,11 @@ class AccessData extends Seeder
     public function run()
     {
         DB::table('accesses')->insert([
-            ['name' => 'System Admin', 'action' => '2', 'branch' => '2', 'module' => '2'],
-            ['name' => 'Administrator', 'action' => '2', 'branch' => '2', 'module' => '2'],
-            ['name' => 'Disbursement Group', 'action' => '1', 'branch' => '2', 'module' => '1'],
-            ['name' => 'Other Group', 'action' => '1', 'branch' => '0', 'module' => '1'],
-            ['name' => 'Custom Users', 'action' => '0', 'branch' => '0', 'module' => '0'],
+            ['name' => 'System Admin', 'action' => '2', 'group' => '2', 'module' => '2'],
+            ['name' => 'Administrator', 'action' => '2', 'group' => '2', 'module' => '2'],
+            ['name' => 'Disbursement Group', 'action' => '1', 'group' => '2', 'module' => '1'],
+            ['name' => 'Other Group', 'action' => '1', 'group' => '0', 'module' => '1'],
+            ['name' => 'Custom Users', 'action' => '0', 'group' => '0', 'module' => '0'],
         ]);
     }
 }

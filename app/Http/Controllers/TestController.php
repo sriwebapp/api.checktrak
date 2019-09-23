@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\User;
 use App\Check;
+use App\Group;
 use App\Action;
 use App\Branch;
 use App\Module;

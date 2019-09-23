@@ -13,9 +13,9 @@ class Access extends Model
         return $this->hasMany(User::class);
     }
 
-    public function branches()
+    public function groups()
     {
-        return $this->belongsToMany(Branch::class, 'access_branch', 'access_id');
+        return $this->belongsToMany(Group::class, 'access_group', 'access_id');
     }
 
     public function actions()
@@ -28,12 +28,12 @@ class Access extends Model
         return $this->belongsToMany(Module::class, 'access_module', 'access_id');
     }
 
-    public function getBranches()
+    public function getGroups()
     {
-        if ( $this->branch === 2 ) {
-            return Branch::get();
-        } elseif ( $this->branch === 1 ) {
-            return $this->branches;
+        if ( $this->group === 2 ) {
+            return Group::get();
+        } elseif ( $this->group === 1 ) {
+            return $this->groups;
         }
     }
 

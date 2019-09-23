@@ -11,11 +11,12 @@ class TransmittalController extends Controller
 {
     public function index(Company $company)
     {
-        $branches = Auth::user()->getBranches()->pluck('id');
+        $groups = Auth::user()->getGroups()->pluck('id');
 
-        return Transmittal::where('ref' , 'like', $company->code . '%')
-            ->whereIn('branch_id', $branches)
+        return $company->transmittals()
+            ->whereIn('group_id', $groups)
             ->with('branch')
+            ->with('group')
             // ->with('user')
             // ->with('incharge')
             ->get();

@@ -21,7 +21,7 @@ class TestAccessModuleData extends Seeder
         // });
 
         $users->map( function($user) {
-            return $user->modules()->sync( Module::whereId(6)->get() );
+            return $user->modules()->sync( Module::whereId(7)->get() );
         });
     }
 }

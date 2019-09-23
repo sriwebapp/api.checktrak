@@ -17,11 +17,8 @@ class CreateBranchesTable extends Migration
             $table->bigIncrements('id');
             $table->string('code', 10)->unique();
             $table->string('name');
-            $table->unsignedBigInteger('incharge_id')->nullable();
             $table->boolean('active')->default(1);
             $table->timestamps();
-
-            $table->foreign('incharge_id')->references('id')->on('users');
         });
 
         Schema::table('users', function (Blueprint $table) {

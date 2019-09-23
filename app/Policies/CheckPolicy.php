@@ -60,7 +60,7 @@ class CheckPolicy
     public function clear(User $user, Check $check, Company $company)
     {
         $clearable = $check->company == $company
-                && $user->getBranches()->where('id', $check->branch->id )->count()
+                && $user->getGroups()->where('id', $check->group->id )->count()
                 && $check->status_id === 3; /*claimed*/
 
         $accessible = $user->getActions()->where('code', 'clr')->count();
@@ -84,7 +84,7 @@ class CheckPolicy
     {
         $cancelable = $checks->every( function($check) use ($company, $user) {
             return $check->company == $company
-                && $user->getBranches()->where('id', $check->branch->id )->count()
+                && $user->getGroups()->where('id', $check->group->id )->count()
                 && $check->received
                 && in_array($check->status_id, [1, 4]); /*created, returned*/
         });
@@ -117,7 +117,7 @@ class CheckPolicy
     public function show(User $user, Check $check, Company $company)
     {
         $showable = $check->company == $company
-            && $user->getBranches()->where('id', $check->branch->id )->count();
+            && $user->getGroups()->where('id', $check->group->id )->count();
 
         return $showable;
     }

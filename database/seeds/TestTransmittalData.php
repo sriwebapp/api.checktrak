@@ -1,6 +1,7 @@
 <?php
 
 use App\User;
+use App\Group;
 use App\Branch;
 use App\Company;
 use App\History;
@@ -17,25 +18,34 @@ class TestTransmittalData extends Seeder
     public function run()
     {
         Company::get()->each( function($company) {
-            $branches = Branch::where('id', '<>', 1)->get();
+            $groups = Group::where('id', '<>', 1)->get();
             $users = User::pluck('id');
 
-            $company->checks->chunk(10)->each( function($checks, $key) use ($branches, $company, $users) {
-                $branch = $branches->random();
+            $company->checks->chunk(2)->each( function($checks, $key) use ($groups, $company, $users) {
+                $group = $groups->random();
                 $user = $users->random();
                 $incharge = $users->random();
 
                 Transmittal::create([
-                    'branch_id' => $branch->id,
+                    'group_id' => $group->id,
+                    'branch_id' => $group->branch->id,
+                    'company_id' => $company->id,
+                    'year' => date('Y'),
+                    'series' => substr('0000' . $key, -4),
                     'user_id' => $user,
                     'incharge' => $incharge,
                     'date' => date('Y-m-d'),
                     'due' => date('Y-m-d'),
-                    'ref' => $company->code . '-' . $branch->code . '-' . date('Y') . '-' . substr('0000' . $key, -4) ,
+                    'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . substr('0000' . $key, -4) ,
                 ])->checks()->sync($checks);
 
-                $checks->each( function($check) use ($branch, $user, $incharge) {
-                    $check->update([ 'status_id' => 2, 'received' => 1, 'branch_id' => $branch->id]); // transmitted
+                $checks->each( function($check) use ($group, $user, $incharge) {
+                    $check->update([
+                        'status_id' => 2,
+                        'received' => 1,
+                        'group_id' => $group->id,
+                        'branch_id' => $group->branch->id
+                    ]); // transmitted
 
                     History::insert([
                         [

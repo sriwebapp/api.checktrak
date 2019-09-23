@@ -15,7 +15,11 @@ class CreateTransmittalsTable extends Migration
     {
         Schema::create('transmittals', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->unsignedBigInteger('group_id');
             $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('company_id');
+            $table->string('year');
+            $table->string('series');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('incharge');
             $table->date('date');
@@ -25,7 +29,9 @@ class CreateTransmittalsTable extends Migration
             $table->boolean('received')->default(0);
             $table->timestamps();
 
+            $table->foreign('group_id')->references('id')->on('groups');
             $table->foreign('branch_id')->references('id')->on('branches');
+            $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('incharge')->references('id')->on('users');
         });
