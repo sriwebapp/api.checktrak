@@ -7,6 +7,7 @@ use App\Account;
 use App\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class AccountController extends Controller
 {
@@ -101,6 +102,7 @@ class AccountController extends Controller
             'designation' => $request->get('designation'),
             'fax' => $request->get('fax'),
             'purpose' => $request->get('purpose'),
+            'active' => $request->get('active'),
         ]);
 
         Log::info($request->user()->name . ' updated an account: ' . $account->code);
@@ -108,8 +110,18 @@ class AccountController extends Controller
         return ['message' => 'Bank Account successfully updated.'];
     }
 
-    public function destroy($id)
+    public function destroy(Company $company, Account $account)
     {
-        abort(403);
+        $this->authorize('module', $this->module);
+
+        abort_unless($account->company_id === $company->id, 403, 'Unauthorized');
+
+        abort_if($account->checks->count(), 400, "Unable to delete: Bank Account is involved in check transactions.");
+
+        $account->delete();
+
+        Log::info( Auth::user()->name . ' deleted account: ' . $account->code );
+
+        return ['message' => 'User successfully deleted.'];
     }
 }

@@ -19,7 +19,7 @@ class ToolController extends Controller
 {
     public function accounts(Company $company)
     {
-        return $company->accounts;
+        return $company->accounts()->where('active', 1)->get();
     }
 
     public function actions()

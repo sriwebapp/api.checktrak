@@ -23,6 +23,7 @@ class CreateUsersTable extends Migration
             $table->unsignedBigInteger('access_id');
             $table->unsignedBigInteger('branch_id')->nullable();
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
 
             // $table->foreign('access_id')->references('id')->on('accesses')->onDelete('cascade');

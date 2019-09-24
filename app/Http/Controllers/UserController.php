@@ -10,6 +10,7 @@ use App\Branch;
 use App\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -83,7 +84,18 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        abort(403);
+        $this->authorize('module', $this->module);
+
+        abort_if($user->history->count(), 400, "Unable to delete: User is involved in check transactions.");
+        abort_if($user->createdTransmittals->count(), 400, "Unable to delete: User is involved in check transmittals.");
+        abort_if($user->inchargeTransmittals->count(), 400, "Unable to delete: User is incharge in check transmittals.");
+        abort_if($user->inchargeGroups->count(), 400, "Unable to delete: User is incharge in groups.");
+
+        $user->delete();
+
+        Log::info( Auth::user()->name . ' deleted user: ' . $user->name );
+
+        return ['message' => 'User successfully deleted.'];
     }
 
     public function access(Request $request, User $user)

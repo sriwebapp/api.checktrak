@@ -5,13 +5,14 @@ namespace App;
 use Illuminate\Support\Facades\DB;
 use Laravel\Passport\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Notifications\ResetPasswordNotification;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'name', 'username', 'email', 'password', 'branch_id', 'access_id', 'active'
@@ -38,6 +39,26 @@ class User extends Authenticatable
     public function branch()
     {
         return $this->belongsTo(Branch::class);
+    }
+
+    public function history()
+    {
+        return $this->hasMany(History::class);
+    }
+
+    public function createdTransmittals()
+    {
+        return $this->hasMany(Transmittal::class, 'user_id');
+    }
+
+    public function inchargeTransmittals()
+    {
+        return $this->hasMany(Transmittal::class, 'incharge');
+    }
+
+    public function inchargeGroups()
+    {
+        return $this->belongsToMany(User::class, 'group_incharge', 'user_id');
     }
 
     public function groups()

@@ -27,6 +27,7 @@ class CreateAccountsTable extends Migration
             $table->string('fax')->nullable();
             $table->text('purpose')->nullable();
             $table->boolean('active')->default(1);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies');
