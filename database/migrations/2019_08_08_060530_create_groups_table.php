@@ -19,6 +19,7 @@ class CreateGroupsTable extends Migration
             $table->unsignedBigInteger('branch_id')->nullable();
             // $table->unsignedBigInteger('incharge_id')->nullable();
             $table->boolean('active')->default(1);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('branch_id')->references('id')->on('branches');

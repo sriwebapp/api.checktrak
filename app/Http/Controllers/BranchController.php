@@ -22,7 +22,7 @@ class BranchController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return Branch::get();
+        return Branch::with('users')->with('groups')->get();
     }
 
     public function store(Request $request)

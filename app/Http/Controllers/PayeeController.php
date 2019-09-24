@@ -31,14 +31,12 @@ class PayeeController extends Controller
         $request->validate([
             'name' => 'required|max:191',
             'code' => 'required|max:20|unique2:payees,code,company_id,' . $company->id,
-            'desc' => 'required|max:191',
             'payee_group_id' => 'required|integer|exists:payee_groups,id',
         ]);
 
         Payee::create([
             'name' => $request->get('name'),
             'code' => $request->get('code'),
-            'desc' => $request->get('desc'),
             'company_id' => $company->id,
             'payee_group_id' => $request->get('payee_group_id'),
         ]);
@@ -68,14 +66,12 @@ class PayeeController extends Controller
         $request->validate([
             'name' => 'required|max:191',
             'code' => 'required|max:20',
-            'desc' => 'required|max:191',
             'payee_group_id' => 'required|integer|exists:payee_groups,id',
         ]);
 
         $payee->update([
             'name' => $request->get('name'),
             'code' => $request->get('code'),
-            'desc' => $request->get('desc'),
             'payee_group_id' => $request->get('payee_group_id'),
         ]);
 

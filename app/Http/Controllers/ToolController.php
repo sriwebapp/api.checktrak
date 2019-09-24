@@ -34,7 +34,7 @@ class ToolController extends Controller
 
     public function groups()
     {
-        return Group::get();
+        return Group::where('active', 1)->get();
     }
 
     public function checks(Transmittal $transmittal)

@@ -7,6 +7,7 @@ use App\Group;
 use App\Module;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
@@ -70,6 +71,7 @@ class GroupController extends Controller
         $group->update([
             'name' => $request->get('name'),
             'branch_id' => $request->get('branch_id'),
+            'active' => $request->get('active'),
         ]);
 
         $group->incharge()->sync($users);
@@ -79,8 +81,17 @@ class GroupController extends Controller
         return ['message' => 'Group successfully updated.'];
     }
 
-    public function destroy($id)
+    public function destroy(Group $group)
     {
-        abort(403);
+        $this->authorize('module', $this->module);
+
+        abort_if($group->transmittals->count(), 400, "Unable to delete: Check transmittals belong to this Group.");
+        abort_if($group->checks->count(), 400, "Unable to delete: Check transactions belong to this Group.");
+
+        $group->delete();
+
+        Log::info( Auth::user()->name . ' deleted group: ' . $group->name );
+
+        return ['message' => 'Group successfully deleted.'];
     }
 }

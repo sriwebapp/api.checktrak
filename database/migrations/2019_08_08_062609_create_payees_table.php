@@ -17,9 +17,10 @@ class CreatePayeesTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('code', 20);
-            $table->string('desc');
             $table->unsignedBigInteger('company_id')->nullable();
             $table->unsignedBigInteger('payee_group_id')->nullable();
+            $table->boolean('active')->default(1);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('company_id')->references('id')->on('companies');

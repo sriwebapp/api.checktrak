@@ -58,7 +58,7 @@ class User extends Authenticatable
 
     public function inchargeGroups()
     {
-        return $this->belongsToMany(User::class, 'group_incharge', 'user_id');
+        return $this->belongsToMany(Group::class, 'group_incharge', 'user_id');
     }
 
     public function groups()
