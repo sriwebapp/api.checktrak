@@ -13,10 +13,10 @@ class Group extends Model
         return $this->belongsTo(Branch::class);
     }
 
-    // public function incharge()
-    // {
-    //     return $this->belongsTo(User::class, 'incharge_id');
-    // }
+    public function incharge()
+    {
+        return $this->belongsToMany(User::class, 'group_incharge', 'group_id');
+    }
 
     public function transmittals()
     {
