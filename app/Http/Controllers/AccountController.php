@@ -122,6 +122,6 @@ class AccountController extends Controller
 
         Log::info( Auth::user()->name . ' deleted account: ' . $account->code );
 
-        return ['message' => 'User successfully deleted.'];
+        return ['message' => 'Account successfully deleted.'];
     }
 }

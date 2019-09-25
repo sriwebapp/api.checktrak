@@ -7,6 +7,7 @@ use App\Module;
 use App\Company;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class PayeeController extends Controller
 {
@@ -73,6 +74,7 @@ class PayeeController extends Controller
             'name' => $request->get('name'),
             'code' => $request->get('code'),
             'payee_group_id' => $request->get('payee_group_id'),
+            'active' => $request->get('active'),
         ]);
 
         Log::info($request->user()->name . ' updated a payee: ' . $payee->code);
@@ -80,8 +82,18 @@ class PayeeController extends Controller
         return ['message' => 'Payee successfully updated .'];
     }
 
-    public function destroy($id)
+    public function destroy(Company $company, Payee $payee)
     {
-        abort(403);
+        $this->authorize('module', $this->module);
+
+        abort_unless($payee->company_id === $company->id, 403, 'Unauthorized');
+
+        abort_if($payee->checks->count(), 400, "Unable to delete: Checks belong to this Payee.");
+
+        $payee->delete();
+
+        Log::info( Auth::user()->name . ' deleted payee: ' . $payee->name );
+
+        return ['message' => 'Payee successfully deleted.'];
     }
 }
