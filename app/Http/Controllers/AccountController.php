@@ -46,7 +46,7 @@ class AccountController extends Controller
         Account::create([
             'company_id' => $company->id,
             'bank' => $bank,
-            'code' => $bank . '-' . substr($request->get('number'), -2),
+            'code' => $bank . '-' . substr(str_replace('-', '', $request->get('number')), -2),
             'number' => $request->get('number'),
             'address' => $request->get('address'),
             'tel' => $request->get('tel'),
@@ -93,7 +93,7 @@ class AccountController extends Controller
 
         $account->update([
             'bank' => $bank,
-            'code' => $bank . '-' . substr($request->get('number'), -2),
+            'code' => $bank . '-' . substr(str_replace('-', '', $request->get('number')), -2),
             'number' => $request->get('number'),
             'address' => $request->get('address'),
             'tel' => $request->get('tel'),
