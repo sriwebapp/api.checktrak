@@ -130,7 +130,11 @@ class CheckController extends Controller
     {
         // $checks = $transmittal->checks()->where('received', 0)->get();
 
-        $request->validate(['checks' => 'required|array']);
+        $request->validate([
+            'date' => 'required|date',
+            'checks' => 'required|array',
+            'remarks' => 'max:191',
+        ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero

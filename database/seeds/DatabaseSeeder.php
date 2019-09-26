@@ -17,7 +17,8 @@ class DatabaseSeeder extends Seeder
         $this->call(PayeeGroup::class);
         $this->call(ModuleData::class);
         $this->call(BranchData::class);
-        $this->call(InitialData::class);
+        $this->call(GroupData::class);
+        $this->call(UserData::class);
         $this->call(CompanyData::class);
         // $this->call(TestAccessBranchData::class);
         $this->call(TestAccessModuleData::class);
