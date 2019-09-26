@@ -40,7 +40,7 @@ class AccountController extends Controller
             'contact_person' => /*required|string*/ 'max:191',
             'designation' => /*required|string*/ 'max:191',
             'fax' => /*required|string*/ 'max:50',
-            'purpose' => /*required|string*/ '',
+            'purpose' => 'required|string',
         ]);
 
         Account::create([
@@ -86,7 +86,7 @@ class AccountController extends Controller
             'contact_person' => /*required|string*/ 'max:191',
             'designation' => /*required|string*/ 'max:191',
             'fax' => /*required|string*/ 'max:50',
-            'purpose' => /*required|string*/ '',
+            'purpose' => 'required|string',
         ]);
 
         $bank = strtoupper($request->get('bank'));
