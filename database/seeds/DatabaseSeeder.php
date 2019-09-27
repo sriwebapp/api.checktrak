@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         // $this->call(TestAccessBranchData::class);
         $this->call(TestAccessModuleData::class);
         $this->call(TestAccessActionData::class);
+        $this->call(FailureReasonData::class);
     }
 }

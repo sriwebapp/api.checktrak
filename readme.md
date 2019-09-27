@@ -33,3 +33,9 @@
 - groups under branches
 - multiple incharge per group
 
+- check user imports before deleting users
+
+### importing
+- from excel save as csv
+- open notepad save as change to utf8
+

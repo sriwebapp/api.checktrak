@@ -89,6 +89,7 @@ class UserController extends Controller
         abort_if($user->history->count(), 400, "Unable to delete: User is involved in check transactions.");
         abort_if($user->createdTransmittals->count(), 400, "Unable to delete: User is involved in check transmittals.");
         abort_if($user->inchargeTransmittals->count(), 400, "Unable to delete: User is incharge in check transmittals.");
+        abort_if($user->imports->count(), 400, "Unable to delete: User is incharge in check imports.");
 
         $user->delete();
 
