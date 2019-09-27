@@ -51,6 +51,10 @@ Route::middleware(['auth:api'])->group(function() {
             Route::patch('/{check}', 'CheckController@edit');
             Route::delete('/{check}', 'CheckController@delete');
         });
+
+        Route::prefix('/import')->group( function() {
+            Route::post('/check', 'ImportController@check');
+        });
     });
 
     Route::prefix('/tools')->group( function() {
