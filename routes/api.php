@@ -55,6 +55,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::prefix('/import')->group( function() {
             Route::post('/check', 'ImportController@check');
         });
+        Route::apiResource('/import', 'ImportController');
     });
 
     Route::prefix('/tools')->group( function() {

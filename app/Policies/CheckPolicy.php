@@ -17,6 +17,11 @@ class CheckPolicy
         return $user->getActions()->where('code', 'crt')->count();
     }
 
+    public function import(User $user)
+    {
+        return $user->getActions()->where('code', 'imt')->count();
+    }
+
     public function transmit(User $user, Company $company, Collection $checks)
     {
         $transmittable = $checks->every( function($check) use ($company) {

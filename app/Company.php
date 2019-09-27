@@ -32,4 +32,9 @@ class Company extends Model
     {
         return $this->hasMany(Check::class);
     }
+
+    public function imports()
+    {
+        return $this->hasMany(Import::class);
+    }
 }

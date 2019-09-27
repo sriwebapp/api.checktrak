@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Check;
+use App\Import;
 use App\Company;
 use App\Imports\CheckImport;
 use Illuminate\Http\Request;
@@ -11,7 +12,7 @@ class ImportController extends Controller
 {
     public function check(Request $request, Company $company)
     {
-        $this->authorize('create', Check::class);
+        $this->authorize('import', Check::class);
 
         ini_set('memory_limit','2048M');
 
@@ -28,5 +29,38 @@ class ImportController extends Controller
         \Excel::import($import = new CheckImport($company), $request->file('checks_file')); //import
 
         return $import->response();
+    }
+
+    public function index(Company $company)
+    {
+        $this->authorize('import', Check::class);
+
+        return $company->imports()->with('user')->get();
+    }
+
+    public function store()
+    {
+        abort(403);
+    }
+
+    public function show(Company $company, Import $import)
+    {
+        $this->authorize('import', Check::class);
+
+        if ($import->subject === 'Checks') {
+            $import->items = $import->tempChecks()->with('reason')->get();
+        }
+
+        return $import;
+    }
+
+    public function update()
+    {
+        abort(403);
+    }
+
+    public function destroy()
+    {
+        abort(403);
     }
 }
