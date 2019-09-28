@@ -8,6 +8,7 @@ use App\Company;
 use App\History;
 use App\TempCheck;
 use Carbon\Carbon;
+use App\FailureReason;
 use Illuminate\Support\Collection;
 use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -20,6 +21,7 @@ class CheckImport implements ToCollection, WithHeadingRow
     protected $totalRows;
     protected $importedRows = 0;
     protected $failedRows = 0;
+    protected $failedChecks = [];
     protected $import;
 
     public function __construct(Company $company = null)
@@ -95,8 +97,9 @@ class CheckImport implements ToCollection, WithHeadingRow
 
     public function handle($row, $reason)
     {
-        TempCheck::create([
-            'import_id' => $this->import->id,
+        $reasons = FailureReason::get();
+
+        array_push($this->failedChecks, [
             'bank' => trim($row['bank_no']),
             'account' => trim($row['account']),
             'number' => trim($row['cheque_no']),
@@ -105,9 +108,12 @@ class CheckImport implements ToCollection, WithHeadingRow
             'amount' => trim($row['payment_amt']),
             'details' => trim($row['journal_remarks']),
             'date' => trim($row['posting_date']),
-            'reason_id' => $reason,
+            'reason' => $reasons->find($reason)->desc,
         ]);
-
+        // TempCheck::create([
+        //     'import_id' => $this->import->id,
+        //     'reason_id' => $reason,
+        // ]);
         $this->failedRows++;
     }
 
@@ -131,6 +137,8 @@ class CheckImport implements ToCollection, WithHeadingRow
             ->with('branch')
             ->with('history')
             ->get();
+
+        $this->import->failedChecks = $this->failedChecks;
 
         $response['import'] = $this->import;
 

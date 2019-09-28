@@ -7,6 +7,7 @@ use App\Import;
 use App\Company;
 use App\Imports\CheckImport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ImportController extends Controller
 {
@@ -27,6 +28,8 @@ class ImportController extends Controller
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
 
         \Excel::import($import = new CheckImport($company), $request->file('checks_file')); //import
+
+        Log::info($request->user()->name . ' imported checks.');
 
         return $import->response();
     }
