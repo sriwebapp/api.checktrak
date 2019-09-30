@@ -36,7 +36,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         $this->import = Import::create([
             'company_id' => $this->company->id,
             'user_id' => auth()->user()->id,
-            'subject' => 'Checks',
+            'subject' => 'Create',
             'total' => $this->totalRows,
         ]);
 

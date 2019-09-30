@@ -36,6 +36,14 @@
 - check user imports before deleting users
 
 ### importing
+- delete unneccessary columns
+- in excel change format date('MM/DD/Y'), decimals
+- remove empty lines
 - from excel save as csv
 - open notepad save as change to utf8
 
+
+### Todo 09-30-2019
+- import cleared checks -- ok
+- create manual for importing --
+- checks filtering

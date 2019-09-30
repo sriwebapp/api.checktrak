@@ -17,6 +17,9 @@ class FailureReasonData extends Seeder
             ['desc' => 'Existing Data'],
             ['desc' => 'Not Existing Payee'],
             ['desc' => 'Not Existing Account'],
+            ['desc' => 'Not Existing Check'],
+            ['desc' => 'Already Cleared'],
+            ['desc' => 'Not Yet Claimed'],
         ]);
     }
 }

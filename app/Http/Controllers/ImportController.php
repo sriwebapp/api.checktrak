@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Check;
 use App\Import;
+use App\Account;
 use App\Company;
 use App\Imports\CheckImport;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use App\Imports\ClearCheckImport;
 use Illuminate\Support\Facades\Log;
 
 class ImportController extends Controller
@@ -30,6 +33,37 @@ class ImportController extends Controller
         \Excel::import($import = new CheckImport($company), $request->file('checks_file')); //import
 
         Log::info($request->user()->name . ' imported checks.');
+
+        return $import->response();
+    }
+
+    public function clearCheck(Request $request, Company $company)
+    {
+        $this->authorize('import', Check::class);
+
+        ini_set('memory_limit','2048M');
+
+        $request->validate([
+            'clear_checks_file' => 'required|max:10000|mimes:csv,txt',
+            'account_id' => ['required', Rule::in($company->accounts->pluck('id'))]
+        ]);
+
+        $account = Account::find($request->get('account_id'));
+
+        $clearChecks = \Excel::toCollection(new ClearCheckImport(), $request->file('clear_checks_file'))->first();
+
+        // return $account->checks->where('number', '1858916')->first();
+
+         // check if columns are complete
+        $completeColumns = $clearChecks->first()->has([
+            'check_number', 'amount_cleared', 'date_cleared'
+        ]);
+
+        abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+
+        \Excel::import($import = new ClearCheckImport($account), $request->file('clear_checks_file')); //import
+
+        Log::info($request->user()->name . ' imported cleared checks.');
 
         return $import->response();
     }
