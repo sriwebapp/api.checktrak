@@ -88,3 +88,6 @@
 - Group access
 - Company
 - Branch
+
+-- todo minimize loading in startup
+-- access conditional changing
