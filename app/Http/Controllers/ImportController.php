@@ -51,10 +51,7 @@ class ImportController extends Controller
         $account = Account::find($request->get('account_id'));
 
         $clearChecks = \Excel::toCollection(new ClearCheckImport(), $request->file('clear_checks_file'))->first();
-
-        // return $account->checks->where('number', '1858916')->first();
-
-         // check if columns are complete
+        // check if columns are complete
         $completeColumns = $clearChecks->first()->has([
             'check_number', 'amount_cleared', 'date_cleared'
         ]);
