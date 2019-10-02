@@ -126,4 +126,14 @@ class ToolController extends Controller
     {
         return User::where('active', 1)->get();
     }
+
+    public function branchUsers(Branch $branch)
+    {
+        return $branch->users()->where('active', 1)->get();
+    }
+
+    public function groupIncharge(Group $group)
+    {
+        return $group->incharge()->where('active', 1)->get();
+    }
 }
