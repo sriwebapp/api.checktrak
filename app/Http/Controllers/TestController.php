@@ -8,6 +8,7 @@ use App\Group;
 use App\Action;
 use App\Branch;
 use App\Module;
+use App\Company;
 use Illuminate\Http\Request;
 
 class TestController extends Controller
@@ -21,8 +22,12 @@ class TestController extends Controller
 
     public function index(Request $request)
     {
-        $user = User::findOrFail($request->get('id'));
+        $company = Company::findOrFail($request->get('id'));
 
-        return $user->accessibility();
+        return $company->checks()->where('number', '1782810')->first();
+        // 1782810
+        // $user = User::findOrFail($request->get('id'));
+
+        // return $user->accessibility();
     }
 }

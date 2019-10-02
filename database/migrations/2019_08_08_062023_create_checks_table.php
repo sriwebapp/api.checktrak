@@ -30,9 +30,7 @@ class CreateChecksTable extends Migration
             $table->date('date');
             $table->softDeletes();
             $table->timestamps();
-
-            $table->unique(['number', 'account_id']);
-
+            // $table->unique(['number', 'account_id']); unneccessary
             $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('status_id')->references('id')->on('statuses');
             $table->foreign('account_id')->references('id')->on('accounts');

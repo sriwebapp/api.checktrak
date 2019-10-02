@@ -10,6 +10,7 @@ use App\TempCheck;
 use Carbon\Carbon;
 use App\FailureReason;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -79,8 +80,10 @@ class CheckImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (\InvalidArgumentException $e) {
                         $this->handle($row, 1);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
                     }
                 } elseif ($existing) {
                     $this->handle($row, 2);

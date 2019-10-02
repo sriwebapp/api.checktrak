@@ -8,6 +8,7 @@ use App\History;
 use Carbon\Carbon;
 use App\FailureReason;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -60,8 +61,10 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (\InvalidArgumentException $e) {
                         $this->handle($row, 1);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
                     }
                 } elseif ($check->status_id === 6) {
                     $this->handle($row, 6);
