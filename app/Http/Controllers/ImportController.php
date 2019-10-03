@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Check;
 use App\Import;
+use App\Module;
 use App\Account;
 use App\Company;
 use App\Imports\CheckImport;
@@ -68,7 +69,7 @@ class ImportController extends Controller
 
     public function payee(Request $request, Company $company)
     {
-        $this->authorize('import', Check::class);
+        $this->authorize('module', Module::where('code', 'pye')->first());
 
         ini_set('memory_limit','2048M');
 

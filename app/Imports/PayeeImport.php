@@ -55,7 +55,9 @@ class PayeeImport implements ToCollection, WithHeadingRow
                             'payee_group_id' => $group->id,
                         ]);
 
+                        $payee->group;
                         array_push($this->successPayees, $payee);
+
                         $this->importedRows++;
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
