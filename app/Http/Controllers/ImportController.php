@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Check;
 use App\Import;
+use App\Module;
 use App\Account;
 use App\Company;
 use App\Imports\CheckImport;
+use App\Imports\PayeeImport;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Imports\ClearCheckImport;
@@ -61,6 +63,29 @@ class ImportController extends Controller
         \Excel::import($import = new ClearCheckImport($account), $request->file('clear_checks_file')); //import
 
         Log::info($request->user()->name . ' imported cleared checks.');
+
+        return $import->response();
+    }
+
+    public function payee(Request $request, Company $company)
+    {
+        $this->authorize('module', Module::where('code', 'pye')->first());
+
+        ini_set('memory_limit','2048M');
+
+        $request->validate(['payees_file' => 'required|max:10000|mimes:csv,txt']);
+
+        $payees = \Excel::toCollection(new PayeeImport(), $request->file('payees_file'))->first();
+        // check if columns are complete
+        $completeColumns = $payees->first()->has([
+            'bp_code', 'bp_name', 'group_code'
+        ]);
+
+        abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+
+        \Excel::import($import = new PayeeImport($company), $request->file('payees_file')); //import
+
+        Log::info($request->user()->name . ' imported payees.');
 
         return $import->response();
     }
