@@ -9,7 +9,9 @@ use App\Action;
 use App\Branch;
 use App\Module;
 use App\Company;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Notifications\UserRegisteredNotification;
 
 class TestController extends Controller
 {
@@ -22,12 +24,16 @@ class TestController extends Controller
 
     public function index(Request $request)
     {
-        $company = Company::findOrFail($request->get('id'));
+        // $company = Company::findOrFail($request->get('id'));
 
-        return $company->checks()->where('number', '1782810')->first();
-        // 1782810
-        // $user = User::findOrFail($request->get('id'));
+        // return $company->checks()->where('number', '1782810')->first();
 
-        // return $user->accessibility();
+        return Str::random(8);
+
+        $user = User::findOrFail($request->get('id'));
+
+        $user->notify(new UserRegisteredNotification());
+
+        return $user->accessibility();
     }
 }

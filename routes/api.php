@@ -32,8 +32,15 @@ Route::middleware(['auth:api'])->group(function() {
     Route::apiResource('/group', 'GroupController');
 
     Route::prefix('/{company}')->group( function() {
-        Route::apiResource('/payee', 'PayeeController');
         Route::apiResource('/account', 'AccountController');
+
+        Route::prefix('/payee')->group( function() {
+            Route::post('/', 'PayeeController@index');
+            Route::post('/create', 'PayeeController@store');
+            Route::get('/{payee}', 'PayeeController@show');
+            Route::patch('/{payee}', 'PayeeController@update');
+            Route::delete('/{payee}', 'PayeeController@destroy');
+        });
 
         Route::get('/transmittal', 'TransmittalController@index');
         Route::get('/transmittal/{transmittal}', 'TransmittalController@show');

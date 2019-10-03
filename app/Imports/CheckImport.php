@@ -41,12 +41,9 @@ class CheckImport implements ToCollection, WithHeadingRow
             'total' => $this->totalRows,
         ]);
 
-        $accounts = $this->company->accounts;
-        $payees = $this->company->payees;
-
-        $rows->each( function($row) use ($accounts, $payees) {
-            $payee = $payees->where('code', $row['bp_code'])->first();
-            $account = $accounts->where('bank', $row['bank_no'])
+        $rows->each( function($row) {
+            $payee = $this->company->payees->where('code', $row['bp_code'])->first();
+            $account = $this->company->accounts->where('bank', $row['bank_no'])
                 ->where('number', $row['account'])->first();
 
 

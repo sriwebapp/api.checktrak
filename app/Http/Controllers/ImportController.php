@@ -31,6 +31,7 @@ class ImportController extends Controller
         ]);
 
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+        abort_if($checks->count() > 10000, 400, 'Importing failed: Importing limit of 10000 exceeded.');
 
         \Excel::import($import = new CheckImport($company), $request->file('checks_file')); //import
 
@@ -59,6 +60,7 @@ class ImportController extends Controller
         ]);
 
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+        abort_if($clearChecks->count() > 10000, 400, 'Importing failed: Importing limit of 10000 exceeded.');
 
         \Excel::import($import = new ClearCheckImport($account), $request->file('clear_checks_file')); //import
 
@@ -82,6 +84,7 @@ class ImportController extends Controller
         ]);
 
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+        abort_if($payees->count() > 10000, 400, 'Importing failed: Importing limit of 10000 exceeded.');
 
         \Excel::import($import = new PayeeImport($company), $request->file('payees_file')); //import
 
