@@ -28,7 +28,7 @@ class Transmittal extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function incharge()
+    public function inchargeUser()
     {
         return $this->belongsTo(User::class, 'incharge');
     }

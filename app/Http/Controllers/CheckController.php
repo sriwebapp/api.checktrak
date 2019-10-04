@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
+use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
 {
@@ -97,7 +98,7 @@ class CheckController extends Controller
         // get group
         $group = Group::find($request->get('group_id'));
         // create transmittal
-        Transmittal::create([
+        $transmittal = Transmittal::create([
             'group_id' => $group->id,
             'branch_id' => $group->branch->id,
             'company_id' => $company->id,
@@ -108,7 +109,9 @@ class CheckController extends Controller
             'date' => $request->get('date'),
             'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y/m/d"),
             'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
-        ])->checks()->sync($checks);
+        ]);
+
+        $transmittal->checks()->sync($checks);
         // record history and update status
         $checks->each( function($check) use ($request, $group) {
             $check->update([
@@ -120,6 +123,8 @@ class CheckController extends Controller
 
             $this->recordLog($check, 'trm', $request->get('date'));
         });
+
+        $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
 
         Log::info($request->user()->name . ' transmitted checks.');
 

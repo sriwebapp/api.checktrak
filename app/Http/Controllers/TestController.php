@@ -9,9 +9,11 @@ use App\Action;
 use App\Branch;
 use App\Module;
 use App\Company;
+use App\Transmittal;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use App\Notifications\UserRegisteredNotification;
+use App\Notifications\ChecksTransmittedNotification;
 
 class TestController extends Controller
 {
@@ -24,7 +26,12 @@ class TestController extends Controller
 
     public function index(Request $request)
     {
-        return $request;
+        $transmittal = Transmittal::find($request->get('id'));
+
+        $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
+
+        return 'done';
+
         // $company = Company::findOrFail($request->get('id'));
 
         // return $company->checks()->where('number', '1782810')->first();
