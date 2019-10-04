@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
+use App\Notifications\ChecksReturnedNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
@@ -234,6 +235,10 @@ class CheckController extends Controller
             ]); // returned
 
             $this->recordLog($check, 'rtn', $request->get('date'));
+        });
+
+        Group::first()->incharge->each( function($incharge) use ($transmittal) {
+            $incharge->notify(new ChecksReturnedNotification($transmittal));
         });
 
         Log::info($request->user()->name . ' returned checks.');

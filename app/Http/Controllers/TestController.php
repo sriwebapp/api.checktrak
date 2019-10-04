@@ -26,7 +26,9 @@ class TestController extends Controller
 
     public function index(Request $request)
     {
-        $transmittal = Transmittal::find($request->get('id'));
+        $group = Group::first();
+
+        return $group->incharge;
 
         $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
 

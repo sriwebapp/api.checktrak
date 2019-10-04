@@ -34,7 +34,8 @@ class ToolController extends Controller
 
     public function groups()
     {
-        return Group::where('active', 1)->get();
+        return Group::where('active', 1)
+            ->orderBy('branch_id')->get();
     }
 
     public function checks(Transmittal $transmittal)
