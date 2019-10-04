@@ -24,15 +24,12 @@ class TestController extends Controller
 
     public function index(Request $request)
     {
+        return $request;
         // $company = Company::findOrFail($request->get('id'));
 
         // return $company->checks()->where('number', '1782810')->first();
 
-        return Str::random(8);
-
         $user = User::findOrFail($request->get('id'));
-
-        $user->notify(new UserRegisteredNotification());
 
         return $user->accessibility();
     }
