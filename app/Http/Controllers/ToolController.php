@@ -66,9 +66,21 @@ class ToolController extends Controller
         return Module::get();
     }
 
-    public function payees(Company $company)
+    public function payees(Request $request, Company $company)
     {
-        return $company->payees()->with('group')->get();
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+
+        $order = $request->get('sortDesc') ?
+            ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
+            'desc';
+
+        return $company->payees()->with('group')
+            ->where(function ($query) use ($request) {
+                $query->where('code', 'like', '%' . $request->get('search') . '%')
+                    ->orWhere('name', 'like', '%' . $request->get('search') . '%');
+            })
+            ->orderBy($sort, $order)
+            ->paginate($request->get('itemsPerPage'));
     }
 
     public function payeeGroup()

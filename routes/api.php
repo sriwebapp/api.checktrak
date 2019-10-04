@@ -78,7 +78,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/users', 'ToolController@users');
         Route::get('/users/{branch}', 'ToolController@branchUsers');
         Route::get('/incharge/{group}', 'ToolController@groupIncharge');
-        Route::get('/payees/{company}', 'ToolController@payees');
+        Route::post('/payees/{company}', 'ToolController@payees');
         Route::get('/accounts/{company}', 'ToolController@accounts');
         Route::get('/transmittalRef/{company}/{branch}', 'ToolController@transmittalRef');
         // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');

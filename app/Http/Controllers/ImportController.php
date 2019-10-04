@@ -20,7 +20,7 @@ class ImportController extends Controller
     {
         $this->authorize('import', Check::class);
 
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit', -1);
 
         $request->validate(['checks_file' => 'required|max:10000|mimes:csv,txt']);
 
@@ -44,7 +44,7 @@ class ImportController extends Controller
     {
         $this->authorize('import', Check::class);
 
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit', -1);
 
         $request->validate([
             'clear_checks_file' => 'required|max:10000|mimes:csv,txt',
@@ -73,7 +73,7 @@ class ImportController extends Controller
     {
         $this->authorize('module', Module::where('code', 'pye')->first());
 
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit', -1);
 
         $request->validate(['payees_file' => 'required|max:10000|mimes:csv,txt']);
 
