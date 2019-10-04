@@ -22,6 +22,8 @@ class ImportController extends Controller
 
         ini_set('memory_limit', -1);
 
+        Log::info($request->user()->name . ' started importing checks.');
+
         $request->validate(['checks_file' => 'required|max:10000|mimes:csv,txt']);
 
         $checks = \Excel::toCollection(new CheckImport(), $request->file('checks_file'))->first();
@@ -45,6 +47,8 @@ class ImportController extends Controller
         $this->authorize('import', Check::class);
 
         ini_set('memory_limit', -1);
+
+        Log::info($request->user()->name . ' started importing cleared checks.');
 
         $request->validate([
             'clear_checks_file' => 'required|max:10000|mimes:csv,txt',
@@ -74,6 +78,8 @@ class ImportController extends Controller
         $this->authorize('module', Module::where('code', 'pye')->first());
 
         ini_set('memory_limit', -1);
+
+        Log::info($request->user()->name . ' started importing payees.');
 
         $request->validate(['payees_file' => 'required|max:10000|mimes:csv,txt']);
 
