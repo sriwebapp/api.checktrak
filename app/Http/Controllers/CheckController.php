@@ -34,6 +34,11 @@ class CheckController extends Controller
 
         return $company->checks()
             ->whereIn('group_id', $groups)
+            // ->where( function($q) use ($request) {
+            //     if ($request->get('filter')) {
+            //         $q->where('payee_id', 111466);
+            //     }
+            // })
             ->with('status')
             ->with('payee')
             ->with('account')
@@ -59,6 +64,7 @@ class CheckController extends Controller
             'payee_id' => ['required', Rule::in($company->payees()->pluck('id'))],
             'amount' => 'required|numeric|gt:0',
             'date' => 'required|date',
+            'details' => 'max:50'
         ]);
 
         $check = Check::create([
@@ -290,7 +296,7 @@ class CheckController extends Controller
 
     public function edit(Request $request, Company $company, Check $check)
     {
-        $request->validate([ 'details' => 'required|max:191' ]);
+        $request->validate([ 'details' => 'required|max:50' ]);
 
         $this->authorize('edit', [$check, $company]);
 
