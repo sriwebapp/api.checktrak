@@ -114,7 +114,7 @@ class CheckController extends Controller
             'user_id' => $request->user()->id,
             'incharge' => $request->get('incharge'),
             'date' => $request->get('date'),
-            'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y/m/d"),
+            'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y-m-d"),
             'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
         ]);
 
@@ -133,9 +133,22 @@ class CheckController extends Controller
 
         $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
 
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('payee')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
+
+        \PDF::loadView('pdf.transmittal', compact('transmittal'))
+            ->setPaper('letter', 'landscape')
+            ->setWarnings(false)
+            ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '.pdf');
+
         Log::info($request->user()->name . ' transmitted checks.');
 
-        return ['message' => 'Checks successfully transmitted.'];
+        return [
+            'message' => 'Checks successfully transmitted.',
+            'transmittal' => $transmittal->id,
+        ];
     }
 
     public function receive(Request $request, Company $company/*, Transmittal $transmittal*/)

@@ -32,4 +32,9 @@ class Transmittal extends Model
     {
         return $this->belongsTo(User::class, 'incharge');
     }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }
