@@ -24,22 +24,16 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Request $request)
+    public function index(Request $request, Transmittal $transmittal)
     {
-        $group = Group::first();
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('payee')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
 
-        return $group->incharge;
+        // return view('pdf.transmittal', compact('transmittal'));
 
-        $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
-
-        return 'done';
-
-        // $company = Company::findOrFail($request->get('id'));
-
-        // return $company->checks()->where('number', '1782810')->first();
-
-        $user = User::findOrFail($request->get('id'));
-
-        return $user->accessibility();
+        return \PDF::loadView('pdf.transmittal', compact('transmittal'))
+            ->setPaper('letter', 'portrait')->stream();
     }
 }

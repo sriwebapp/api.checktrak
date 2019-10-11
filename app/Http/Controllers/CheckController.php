@@ -139,7 +139,7 @@ class CheckController extends Controller
         $transmittal->inchargeUser;
 
         \PDF::loadView('pdf.transmittal', compact('transmittal'))
-            ->setPaper('letter', 'landscape')
+            ->setPaper('letter', 'portrait')
             ->setWarnings(false)
             ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '.pdf');
 
