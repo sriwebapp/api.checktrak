@@ -26,7 +26,7 @@ class TransmittalController extends Controller
         abort_unless($transmittal->company_id === $company->id, 403, "Not Allowed.");
 
         $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('payee')->get();
+        $transmittal->checks = $transmittal->checks()->with('payee')->with('history')->get();
         $transmittal->user;
         $transmittal->inchargeUser;
 

@@ -27,13 +27,25 @@ class TestController extends Controller
     public function index(Request $request, Transmittal $transmittal)
     {
         $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('payee')->get();
+        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
         $transmittal->user;
         $transmittal->inchargeUser;
 
-        // return view('pdf.transmittal', compact('transmittal'));
+        $transmittal->checks->map( function($check) {
+            $claimed = $check->history->first( function($h) {
+                return $h->action_id === 4;
+            });
+            $check->claimed = $claimed ? $claimed->date : null;
+            return $check;
+        });
 
-        return \PDF::loadView('pdf.transmittal', compact('transmittal'))
+        // return $transmittal->checks->where('claimed', null)->count();
+
+        // return $transmittal;
+
+        // return view('pdf.return', compact('transmittal'));
+
+        return \PDF::loadView('pdf.return', compact('transmittal'))
             ->setPaper('letter', 'portrait')->stream();
     }
 }

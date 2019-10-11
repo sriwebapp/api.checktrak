@@ -243,7 +243,7 @@ class CheckController extends Controller
 
         $this->authorize('return', [Check::class, $checks]);
 
-        $transmittal->update([ 'returned' => Carbon::now() ]); // update transmittal
+        $transmittal->update([ 'returned' => $request->get('date') ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
             $check->update([
@@ -256,9 +256,29 @@ class CheckController extends Controller
             $this->recordLog($check, 'rtn', $request->get('date'));
         });
 
+
+
         Group::first()->incharge->each( function($incharge) use ($transmittal) {
             $incharge->notify(new ChecksReturnedNotification($transmittal));
         });
+
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
+
+        $transmittal->checks->map( function($check) {
+            $claimed = $check->history->first( function($h) {
+                return $h->action_id === 4;
+            });
+            $check->claimed = $claimed ? $claimed->date : null;
+            return $check;
+        });
+
+        \PDF::loadView('pdf.return', compact('transmittal'))
+            ->setPaper('letter', 'portrait')
+            ->setWarnings(false)
+            ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf');
 
         Log::info($request->user()->name . ' returned checks.');
 
