@@ -16,7 +16,7 @@ class UserData extends Seeder
             'name' => 'System Administrator',
             'username' => 'developer',
             'email' => 'sriwebapp@gmail.com',
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'password' => bcrypt(config('app.default_pass')), // password
             'branch_id' => 1, // head office
             'access_id' => 1, // system administrator
         ]);
@@ -25,7 +25,7 @@ class UserData extends Seeder
             'name' => 'Michelle Villa',
             'username' => 'mich',
             'email' => 'michelle.villa@serviceresourcesinc.com',
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'password' => bcrypt(config('app.default_pass')), // password
             'access_id' => 2, // administrator
             'branch_id' => 1, // head office
         ]);
@@ -34,7 +34,7 @@ class UserData extends Seeder
             'name' => 'Charmaine Carillo',
             'username' => 'charm',
             'email' => 'charmaine.carillo@csic.ph',
-            'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
+            'password' => bcrypt(config('app.default_pass')), // password
             'access_id' => 3, // administrator
             'branch_id' => 1, // head office
         ]);

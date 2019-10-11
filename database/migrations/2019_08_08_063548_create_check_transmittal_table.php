@@ -20,7 +20,7 @@ class CreateCheckTransmittalTable extends Migration
             $table->timestamps();
 
             $table->foreign('check_id')->references('id')->on('checks')->onDelete('cascade');
-            $table->foreign('transmittal_id')->references('id')->on('transmittals');
+            $table->foreign('transmittal_id')->references('id')->on('transmittals')->onDelete('cascade');
         });
     }
 

@@ -17,13 +17,19 @@ class TransmittalController extends Controller
             ->whereIn('group_id', $groups)
             ->with('branch')
             ->with('group')
-            // ->with('user')
-            // ->with('incharge')
+            ->orderBy('id', 'desc')
             ->get();
     }
 
     public function show(Company $company, Transmittal $transmittal)
     {
-        return $transmittal->checks;
+        abort_unless($transmittal->company_id === $company->id, 403, "Not Allowed.");
+
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('payee')->with('history')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
+
+        return $transmittal;
     }
 }

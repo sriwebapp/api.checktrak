@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::post('/test', 'TestController@index');
+Route::get('/test/{transmittal}', 'TestController@index');
 
 Route::post('/login', 'AuthController@login');
 Route::post('/password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail');
@@ -32,8 +32,15 @@ Route::middleware(['auth:api'])->group(function() {
     Route::apiResource('/group', 'GroupController');
 
     Route::prefix('/{company}')->group( function() {
-        Route::apiResource('/payee', 'PayeeController');
         Route::apiResource('/account', 'AccountController');
+
+        Route::prefix('/payee')->group( function() {
+            Route::post('/', 'PayeeController@index');
+            Route::post('/create', 'PayeeController@store');
+            Route::get('/{payee}', 'PayeeController@show');
+            Route::patch('/{payee}', 'PayeeController@update');
+            Route::delete('/{payee}', 'PayeeController@destroy');
+        });
 
         Route::get('/transmittal', 'TransmittalController@index');
         Route::get('/transmittal/{transmittal}', 'TransmittalController@show');
@@ -71,7 +78,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/users', 'ToolController@users');
         Route::get('/users/{branch}', 'ToolController@branchUsers');
         Route::get('/incharge/{group}', 'ToolController@groupIncharge');
-        Route::get('/payees/{company}', 'ToolController@payees');
+        Route::post('/payees/{company}', 'ToolController@payees');
         Route::get('/accounts/{company}', 'ToolController@accounts');
         Route::get('/transmittalRef/{company}/{branch}', 'ToolController@transmittalRef');
         // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');

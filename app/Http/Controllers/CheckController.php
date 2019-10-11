@@ -16,6 +16,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
+use App\Notifications\ChecksReturnedNotification;
+use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
 {
@@ -32,6 +34,11 @@ class CheckController extends Controller
 
         return $company->checks()
             ->whereIn('group_id', $groups)
+            // ->where( function($q) use ($request) {
+            //     if ($request->get('filter')) {
+            //         $q->where('payee_id', 111466);
+            //     }
+            // })
             ->with('status')
             ->with('payee')
             ->with('account')
@@ -57,6 +64,7 @@ class CheckController extends Controller
             'payee_id' => ['required', Rule::in($company->payees()->pluck('id'))],
             'amount' => 'required|numeric|gt:0',
             'date' => 'required|date',
+            'details' => 'max:50'
         ]);
 
         $check = Check::create([
@@ -97,7 +105,7 @@ class CheckController extends Controller
         // get group
         $group = Group::find($request->get('group_id'));
         // create transmittal
-        Transmittal::create([
+        $transmittal = Transmittal::create([
             'group_id' => $group->id,
             'branch_id' => $group->branch->id,
             'company_id' => $company->id,
@@ -106,9 +114,11 @@ class CheckController extends Controller
             'user_id' => $request->user()->id,
             'incharge' => $request->get('incharge'),
             'date' => $request->get('date'),
-            'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y/m/d"),
+            'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y-m-d"),
             'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
-        ])->checks()->sync($checks);
+        ]);
+
+        $transmittal->checks()->sync($checks);
         // record history and update status
         $checks->each( function($check) use ($request, $group) {
             $check->update([
@@ -121,9 +131,24 @@ class CheckController extends Controller
             $this->recordLog($check, 'trm', $request->get('date'));
         });
 
+        $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
+
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('payee')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
+
+        \PDF::loadView('pdf.transmittal', compact('transmittal'))
+            ->setPaper('letter', 'portrait')
+            ->setWarnings(false)
+            ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '.pdf');
+
         Log::info($request->user()->name . ' transmitted checks.');
 
-        return ['message' => 'Checks successfully transmitted.'];
+        return [
+            'message' => 'Checks successfully transmitted.',
+            'transmittal' => $transmittal->id,
+        ];
     }
 
     public function receive(Request $request, Company $company/*, Transmittal $transmittal*/)
@@ -218,7 +243,7 @@ class CheckController extends Controller
 
         $this->authorize('return', [Check::class, $checks]);
 
-        $transmittal->update([ 'returned' => Carbon::now() ]); // update transmittal
+        $transmittal->update([ 'returned' => $request->get('date') ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
             $check->update([
@@ -230,6 +255,30 @@ class CheckController extends Controller
 
             $this->recordLog($check, 'rtn', $request->get('date'));
         });
+
+
+
+        Group::first()->incharge->each( function($incharge) use ($transmittal) {
+            $incharge->notify(new ChecksReturnedNotification($transmittal));
+        });
+
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
+
+        $transmittal->checks->map( function($check) {
+            $claimed = $check->history->first( function($h) {
+                return $h->action_id === 4;
+            });
+            $check->claimed = $claimed ? $claimed->date : null;
+            return $check;
+        });
+
+        \PDF::loadView('pdf.return', compact('transmittal'))
+            ->setPaper('letter', 'portrait')
+            ->setWarnings(false)
+            ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf');
 
         Log::info($request->user()->name . ' returned checks.');
 
@@ -280,7 +329,7 @@ class CheckController extends Controller
 
     public function edit(Request $request, Company $company, Check $check)
     {
-        $request->validate([ 'details' => 'required|max:191' ]);
+        $request->validate([ 'details' => 'required|max:50' ]);
 
         $this->authorize('edit', [$check, $company]);
 

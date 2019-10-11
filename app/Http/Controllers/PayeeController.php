@@ -18,11 +18,23 @@ class PayeeController extends Controller
         $this->module = Module::where('code', 'pye')->first();
     }
 
-    public function index(Company $company)
+    public function index(Request $request, Company $company)
     {
         $this->authorize('module', $this->module);
 
-        return $company->payees()->with('group')->get();
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+
+        $order = $request->get('sortDesc') ?
+            ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
+            'desc';
+
+        return $company->payees()->with('group')
+            ->where(function ($query) use ($request) {
+                $query->where('code', 'like', '%' . $request->get('search') . '%')
+                    ->orWhere('name', 'like', '%' . $request->get('search') . '%');
+            })
+            ->orderBy($sort, $order)
+            ->paginate($request->get('itemsPerPage'));
     }
 
     public function store(Request $request, Company $company)

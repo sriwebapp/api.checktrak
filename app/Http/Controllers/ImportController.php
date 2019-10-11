@@ -20,7 +20,9 @@ class ImportController extends Controller
     {
         $this->authorize('import', Check::class);
 
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit', -1);
+
+        Log::info($request->user()->name . ' started importing checks.');
 
         $request->validate(['checks_file' => 'required|max:10000|mimes:csv,txt']);
 
@@ -31,6 +33,7 @@ class ImportController extends Controller
         ]);
 
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+        abort_if($checks->count() > 1000, 400, 'Importing failed: Importing limit of 1000 exceeded.');
 
         \Excel::import($import = new CheckImport($company), $request->file('checks_file')); //import
 
@@ -43,7 +46,9 @@ class ImportController extends Controller
     {
         $this->authorize('import', Check::class);
 
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit', -1);
+
+        Log::info($request->user()->name . ' started importing cleared checks.');
 
         $request->validate([
             'clear_checks_file' => 'required|max:10000|mimes:csv,txt',
@@ -59,6 +64,7 @@ class ImportController extends Controller
         ]);
 
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+        abort_if($clearChecks->count() > 1000, 400, 'Importing failed: Importing limit of 1000 exceeded.');
 
         \Excel::import($import = new ClearCheckImport($account), $request->file('clear_checks_file')); //import
 
@@ -71,7 +77,9 @@ class ImportController extends Controller
     {
         $this->authorize('module', Module::where('code', 'pye')->first());
 
-        ini_set('memory_limit','2048M');
+        ini_set('memory_limit', -1);
+
+        Log::info($request->user()->name . ' started importing payees.');
 
         $request->validate(['payees_file' => 'required|max:10000|mimes:csv,txt']);
 
@@ -82,6 +90,7 @@ class ImportController extends Controller
         ]);
 
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
+        abort_if($payees->count() > 10000, 400, 'Importing failed: Importing limit of 10000 exceeded.');
 
         \Excel::import($import = new PayeeImport($company), $request->file('payees_file')); //import
 

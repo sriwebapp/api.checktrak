@@ -8,9 +8,11 @@ use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use App\Notifications\UserRegisteredNotification;
 
 class UserController extends Controller
 {
@@ -40,9 +42,13 @@ class UserController extends Controller
             'access_id' => 'required|integer|exists:accesses,id',
         ]);
 
-        $request['password'] = bcrypt(config('app.default_pass'));
+        $password = Str::random(8);
+
+        $request['password'] = bcrypt($password);
 
         $user = User::create($request->all());
+
+        $user->notify(new UserRegisteredNotification($user, $password));
 
         Log::info($request->user()->name . ' created new user.');
 

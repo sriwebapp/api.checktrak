@@ -34,7 +34,8 @@ class ToolController extends Controller
 
     public function groups()
     {
-        return Group::where('active', 1)->get();
+        return Group::where('active', 1)
+            ->orderBy('branch_id')->get();
     }
 
     public function checks(Transmittal $transmittal)
@@ -66,9 +67,15 @@ class ToolController extends Controller
         return Module::get();
     }
 
-    public function payees(Company $company)
+    public function payees(Request $request, Company $company)
     {
-        return $company->payees()->with('group')->get();
+        return $company->payees()
+            ->where(function ($query) use ($request) {
+                $query->where('code', 'like', '%' . $request->get('search') . '%')
+                    ->orWhere('name', 'like', '%' . $request->get('search') . '%');
+            })
+            ->take(10)
+            ->get();
     }
 
     public function payeeGroup()

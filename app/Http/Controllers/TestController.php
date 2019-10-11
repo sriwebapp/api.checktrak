@@ -9,7 +9,11 @@ use App\Action;
 use App\Branch;
 use App\Module;
 use App\Company;
+use App\Transmittal;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Notifications\UserRegisteredNotification;
+use App\Notifications\ChecksTransmittedNotification;
 
 class TestController extends Controller
 {
@@ -20,14 +24,28 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Request $request)
+    public function index(Request $request, Transmittal $transmittal)
     {
-        $company = Company::findOrFail($request->get('id'));
+        $transmittal->company;
+        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
+        $transmittal->user;
+        $transmittal->inchargeUser;
 
-        return $company->checks()->where('number', '1782810')->first();
-        // 1782810
-        // $user = User::findOrFail($request->get('id'));
+        $transmittal->checks->map( function($check) {
+            $claimed = $check->history->first( function($h) {
+                return $h->action_id === 4;
+            });
+            $check->claimed = $claimed ? $claimed->date : null;
+            return $check;
+        });
 
-        // return $user->accessibility();
+        // return $transmittal->checks->where('claimed', null)->count();
+
+        // return $transmittal;
+
+        // return view('pdf.return', compact('transmittal'));
+
+        return \PDF::loadView('pdf.return', compact('transmittal'))
+            ->setPaper('letter', 'portrait')->stream();
     }
 }
