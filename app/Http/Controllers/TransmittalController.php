@@ -13,22 +13,30 @@ class TransmittalController extends Controller
     {
         $groups = Auth::user()->getGroups()->pluck('id');
 
-        return $company->transmittals()
+        $transmittals = $company->transmittals()
             ->whereIn('group_id', $groups)
             ->with('branch')
-            ->with('group')
             ->orderBy('id', 'desc')
             ->get();
+
+        return $transmittals->map( function($transmittal) {
+            $transmittal->checks = $transmittal->checks()->with('history')->get();
+
+            return $transmittal;
+        });
     }
 
     public function show(Company $company, Transmittal $transmittal)
     {
         abort_unless($transmittal->company_id === $company->id, 403, "Not Allowed.");
 
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('payee')->with('history')->get();
         $transmittal->user;
         $transmittal->inchargeUser;
+        $transmittal->checks = $transmittal->checks()
+            ->with('payee')
+            ->with('history')
+            ->with('status')
+            ->get();
 
         return $transmittal;
     }

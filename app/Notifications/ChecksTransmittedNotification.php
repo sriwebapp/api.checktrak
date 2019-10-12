@@ -21,15 +21,18 @@ class ChecksTransmittedNotification extends Notification
 
     public function toMail($notifiable)
     {
+        $transmittal = $this->transmittal;
+
         return (new MailMessage)
                     ->subject('Checks Transmitted')
-                    ->greeting('Hello ' . $this->transmittal->inchargeUser->name . '!')
+                    ->greeting('Hello ' . $transmittal->inchargeUser->name . '!')
                     ->line(
-                        'You will receive ' . $this->transmittal->checks->count() . ' checks, ' .
-                        ' with total amount of Php ' . $this->transmittal->checks->sum('amount') . '.'
+                        'You will receive ' . $transmittal->ref . ' with ' . $transmittal->checks->count() . ' checks ' .
+                        ' and total amount of Php ' . number_format($transmittal->checks->sum('amount'), 2, '.', ',') . '. ' .
+                        'Please click here for your reference.'
                     )
-                    ->action('Go to App', url(config('app.ui_url')))
-                   ->line('Thank you for using our application!');
+                    ->action('View Attachment', url(config('app.url') . '/pdf/transmittal/' . $transmittal->ref . '.pdf'))
+                    ->line('Kindly check once received.');
     }
 
     /**

@@ -41,8 +41,8 @@ class ToolController extends Controller
     public function checks(Transmittal $transmittal)
     {
         return $transmittal->checks()
+            ->with('history')
             ->with('status')
-            ->with('account')
             ->with('payee')
             ->get();
     }
@@ -95,7 +95,7 @@ class ToolController extends Controller
 
         $series = $transmittal ?
             sprintf('%04s', $transmittal->series + 1) :
-            '0000';
+            '0001';
 
         return [
             'series' => $series,
@@ -127,6 +127,34 @@ class ToolController extends Controller
 
             return $notClaimed && $received;
         })->values()->all();
+    }
+
+    public function sentTransmittals(Company $company)
+    {
+        $groups = Auth::user()->getGroups()->pluck('id');
+
+        return $company->transmittals()
+            ->where('branch_id', Auth::user()->branch->id)
+            ->whereIn('group_id', $groups)
+            ->where('received', 0)
+            ->where('returned', null)
+            ->orderBy('id', 'desc')
+            ->with('checks')
+            ->get();
+    }
+
+    public function returnedTransmittals(Company $company)
+    {
+        $groups = Auth::user()->getGroups()->pluck('id');
+
+        return $company->transmittals()
+            ->where('branch_id', Auth::user()->branch->id)
+            ->whereIn('group_id', $groups)
+            ->where('received', 0)
+            ->where('returned', '<>', null)
+            ->orderBy('id', 'desc')
+            ->with('checks')
+            ->get();
     }
 
     public function users()

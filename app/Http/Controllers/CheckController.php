@@ -16,6 +16,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Notification;
 use App\Notifications\ChecksReturnedNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
@@ -131,7 +132,7 @@ class CheckController extends Controller
             $this->recordLog($check, 'trm', $request->get('date'));
         });
 
-        $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
+        Notification::send($transmittal->group->incharge, new ChecksTransmittedNotification($transmittal));
 
         $transmittal->company;
         $transmittal->checks = $transmittal->checks()->with('payee')->get();
@@ -158,7 +159,7 @@ class CheckController extends Controller
         $request->validate([
             'date' => 'required|date',
             'checks' => 'required|array',
-            'remarks' => 'max:191',
+            'remarks' => 'max:50',
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -167,7 +168,7 @@ class CheckController extends Controller
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
-        // $transmittal->update([ 'received' => 1 ]); // update transmittal
+        $transmittal->update([ 'received' => 1 ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
             $check->update(['received' => 1]);
@@ -185,7 +186,7 @@ class CheckController extends Controller
         $request->validate([
             'date' => 'required|date',
             'checks' => 'required|array',
-            'remarks' => 'max:191',
+            'remarks' => 'max:50',
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -256,11 +257,7 @@ class CheckController extends Controller
             $this->recordLog($check, 'rtn', $request->get('date'));
         });
 
-
-
-        Group::first()->incharge->each( function($incharge) use ($transmittal) {
-            $incharge->notify(new ChecksReturnedNotification($transmittal));
-        });
+        Notification::send(Group::first()->incharge, new ChecksReturnedNotification($transmittal));
 
         $transmittal->company;
         $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
@@ -290,7 +287,7 @@ class CheckController extends Controller
         $request->validate([
             'date' => 'required|date',
             'checks' => 'required|array',
-            'remarks' => 'required|max:191',
+            'remarks' => 'required|max:50',
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -344,7 +341,7 @@ class CheckController extends Controller
 
     public function delete(Request $request, Company $company, Check $check)
     {
-        $request->validate([ 'remarks' => 'required|max:191' ]);
+        $request->validate([ 'remarks' => 'required|max:50' ]);
 
         $this->authorize('delete', [$check, $company]);
 

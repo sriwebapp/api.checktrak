@@ -81,8 +81,8 @@ Route::middleware(['auth:api'])->group(function() {
         Route::post('/payees/{company}', 'ToolController@payees');
         Route::get('/accounts/{company}', 'ToolController@accounts');
         Route::get('/transmittalRef/{company}/{branch}', 'ToolController@transmittalRef');
-        // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
-        // Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
+        Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
+        Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
         Route::get('/transmittals/received/{company}', 'ToolController@receivedTransmittals');
         Route::get('/checks/{transmittal}', 'ToolController@checks');
     });

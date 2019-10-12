@@ -112,15 +112,15 @@
                 <td style="vertical-align: middle; width: 4%;">#</td>
                 <td style="vertical-align: middle; width: 8%;">Date</td>
                 <td style="vertical-align: middle; width: 8%;">Check #</td>
-                <td style="vertical-align: middle; width: 22%;">Payee Name</td>
-                <td style="vertical-align: middle; width: 37%;">Details</td>
+                <td style="vertical-align: middle; width: 30%;">Payee Name</td>
+                <td style="vertical-align: middle; width: 33%;">Details</td>
                 <td style="vertical-align: middle; width: 9%;">Amount</td>
-                <td style="vertical-align: middle; width: 12%;">Date Claimed</td>
+                <td style="vertical-align: middle; width: 8%;">Date Claimed</td>
             </tr>
         </thead>
         <tbody style="font-size: 10px">
             @foreach ($checks as $check)
-                <tr class="text-center">
+                <tr class="text-center {{ $check->claimed ? 'warning' : ''}}">
                     <td style="vertical-align: middle;">{{ $loop->index + 1 }}</td>
                     <td style="vertical-align: middle;">{{ \Carbon\Carbon::createFromFormat('Y-m-d', $check->date)->format('m/d/Y') }}</td>
                     <td style="vertical-align: middle;">{{ $check->number }}</td>

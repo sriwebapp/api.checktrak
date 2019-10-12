@@ -75,6 +75,8 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                 $this->handle($row, 5);
             }
         });
+
+        $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
     public function handle($row, $reason)
