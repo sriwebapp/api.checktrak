@@ -46,6 +46,8 @@ class TestController extends Controller
         // return view('pdf.return', compact('transmittal'));
 
         return \PDF::loadView('pdf.return', compact('transmittal'))
-            ->setPaper('letter', 'portrait')->stream();
+            ->setPaper('letter', 'portrait')
+            ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf')
+            ->stream();
     }
 }

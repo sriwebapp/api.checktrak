@@ -115,7 +115,7 @@
                 <td style="vertical-align: middle; width: 30%;">Payee Name</td>
                 <td style="vertical-align: middle; width: 33%;">Details</td>
                 <td style="vertical-align: middle; width: 9%;">Amount</td>
-                <td style="vertical-align: middle; width: 8%;">Date Claimed</td>
+                <td style="vertical-align: middle; width: 8%;">Claimed</td>
             </tr>
         </thead>
         <tbody style="font-size: 10px">
@@ -133,8 +133,8 @@
                 </tr>
             @endforeach
 
-            @if ( $checks->count() < 23 )
-                @for ($i = $checks->count(); $i < 23; $i++)
+            @if ( $checks->count() < 20 )
+                @for ($i = $checks->count(); $i < 20; $i++)
                     <tr>
                         <td style="padding: 12px;"> </td>
                         <td></td>
@@ -163,7 +163,7 @@
         <tr>
             <td>
                 <span class="legend">Prepared by:</span>
-                <span>{{ $transmittal->user->name }}</span>
+                <span>{{ $transmittal->returnedBy->name }}</span>
             </td>
             <td style="font-size: 10px; font-weight: bold; text-align: right; padding-bottom: 30px; width: 46%">I hereby certify that the checks I received were accounted and complete.</td>
         </tr>

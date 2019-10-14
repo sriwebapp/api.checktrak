@@ -113,19 +113,14 @@ class ToolController extends Controller
             ->whereIn('group_id', $groups)
             ->orderBy('id', 'desc')
             ->where('returned', null)
+            ->where('received', 1)
             ->with('checks')
             ->get();
 
         return $transmittals->filter(function ($transmittal) {
-            $notClaimed = $transmittal->checks()
+            return $transmittal->checks()
                 ->where('status_id', 2)
                 ->count();
-
-            $received = $transmittal->checks()
-                ->where('received', 0)
-                ->count() === 0;
-
-            return $notClaimed && $received;
         })->values()->all();
     }
 
@@ -148,7 +143,6 @@ class ToolController extends Controller
         $groups = Auth::user()->getGroups()->pluck('id');
 
         return $company->transmittals()
-            ->where('branch_id', Auth::user()->branch->id)
             ->whereIn('group_id', $groups)
             ->where('received', 0)
             ->where('returned', '<>', null)

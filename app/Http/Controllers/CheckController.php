@@ -125,7 +125,6 @@ class CheckController extends Controller
             $check->update([
                 'status_id' => 2,
                 'received' => 0,
-                'group_id' => $group->id,
                 'branch_id' => $group->branch->id
             ]); // transmitted
 
@@ -152,17 +151,18 @@ class CheckController extends Controller
         ];
     }
 
-    public function receive(Request $request, Company $company/*, Transmittal $transmittal*/)
+    public function receive(Request $request, Company $company)
     {
-        // $checks = $transmittal->checks()->where('received', 0)->get();
-
         $request->validate([
             'date' => 'required|date',
-            'checks' => 'required|array',
+            'transmittal_id' => [ 'required', Rule::in(Transmittal::where('received', 0)->pluck('id')) ],
             'remarks' => 'max:50',
         ]);
 
-        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
+
+        $checks = $transmittal->checks()->where('received', 0)->get();
+
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
 
@@ -170,8 +170,10 @@ class CheckController extends Controller
 
         $transmittal->update([ 'received' => 1 ]); // update transmittal
 
-        $checks->each( function($check) use ($request) {
-            $check->update(['received' => 1]);
+        $checks->each( function($check) use ($request, $transmittal) {
+            $group = $transmittal->returned ? Group::first() : $transmittal->group;
+
+            $check->update(['received' => 1, 'group_id' => $group->id]);
 
             $this->recordLog($check, 'rcv', $request->get('date'), $request->get('remarks'));
         });
@@ -233,7 +235,8 @@ class CheckController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'transmittal_id' => 'required|exists:transmittals,id'
+            'transmittal_id' => [ 'required', Rule::in(Transmittal::where('received', 1)->pluck('id')) ],
+            'remarks' => 'max:50',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
@@ -244,17 +247,20 @@ class CheckController extends Controller
 
         $this->authorize('return', [Check::class, $checks]);
 
-        $transmittal->update([ 'returned' => $request->get('date') ]); // update transmittal
+        $transmittal->update([
+            'returnedBy_id' => $request->user()->id,
+            'returned' => $request->get('date'),
+            'received' => 0,
+        ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
             $check->update([
                 'status_id' => 4,
                 'received' => 0,
-                'group_id' => 1,
                 'branch_id' => 1
             ]); // returned
 
-            $this->recordLog($check, 'rtn', $request->get('date'));
+            $this->recordLog($check, 'rtn', $request->get('date'), $request->get('remarks'));
         });
 
         Notification::send(Group::first()->incharge, new ChecksReturnedNotification($transmittal));
