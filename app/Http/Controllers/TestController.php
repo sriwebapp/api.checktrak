@@ -12,6 +12,8 @@ use App\Company;
 use App\Transmittal;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ChecksReceivedNotification;
 use App\Notifications\UserRegisteredNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
@@ -26,28 +28,9 @@ class TestController extends Controller
 
     public function index(Request $request, Transmittal $transmittal)
     {
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
-        $transmittal->user;
-        $transmittal->inchargeUser;
+        // return $transmittal->returned;
+        return (new ChecksReceivedNotification($transmittal, User::first()))
+                ->toMail($transmittal->group->incharge);
 
-        $transmittal->checks->map( function($check) {
-            $claimed = $check->history->first( function($h) {
-                return $h->action_id === 4;
-            });
-            $check->claimed = $claimed ? $claimed->date : null;
-            return $check;
-        });
-
-        // return $transmittal->checks->where('claimed', null)->count();
-
-        // return $transmittal;
-
-        // return view('pdf.return', compact('transmittal'));
-
-        return \PDF::loadView('pdf.return', compact('transmittal'))
-            ->setPaper('letter', 'portrait')
-            ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf')
-            ->stream();
     }
 }

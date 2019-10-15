@@ -108,7 +108,7 @@ class ToolController extends Controller
     {
         $groups = Auth::user()->getGroups()->pluck('id');
 
-        $transmittals = $company->transmittals()
+        return $company->transmittals()
             ->where('branch_id', Auth::user()->branch->id)
             ->whereIn('group_id', $groups)
             ->orderBy('id', 'desc')
@@ -116,12 +116,6 @@ class ToolController extends Controller
             ->where('received', 1)
             ->with('checks')
             ->get();
-
-        return $transmittals->filter(function ($transmittal) {
-            return $transmittal->checks()
-                ->where('status_id', 2)
-                ->count();
-        })->values()->all();
     }
 
     public function sentTransmittals(Company $company)

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\ChecksReturnedNotification;
+use App\Notifications\ChecksReceivedNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
@@ -162,7 +163,6 @@ class CheckController extends Controller
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
         $checks = $transmittal->checks()->where('received', 0)->get();
-
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
 
@@ -177,6 +177,10 @@ class CheckController extends Controller
 
             $this->recordLog($check, 'rcv', $request->get('date'), $request->get('remarks'));
         });
+
+        $recipient = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
+
+        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $request->user()));
 
         Log::info($request->user()->name . ' received checks.');
 
@@ -242,8 +246,8 @@ class CheckController extends Controller
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
         $checks = $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
-        // must be greater than zero
-        abort_unless($checks->count(), 400, "No checks available!");
+        // return transmittals even all are claimed
+        // abort_unless($checks->count(), 400, "No checks available!");
 
         $this->authorize('return', [Check::class, $checks]);
 
