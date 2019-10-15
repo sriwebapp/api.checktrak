@@ -114,7 +114,6 @@ class ToolController extends Controller
             ->orderBy('id', 'desc')
             ->where('returned', null)
             ->where('received', 1)
-            ->with('checks')
             ->get();
     }
 
@@ -128,7 +127,6 @@ class ToolController extends Controller
             ->where('received', 0)
             ->where('returned', null)
             ->orderBy('id', 'desc')
-            ->with('checks')
             ->get();
     }
 
@@ -141,7 +139,6 @@ class ToolController extends Controller
             ->where('received', 0)
             ->where('returned', '<>', null)
             ->orderBy('id', 'desc')
-            ->with('checks')
             ->get();
     }
 

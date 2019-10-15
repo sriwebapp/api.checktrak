@@ -10,6 +10,7 @@ use App\Action;
 use App\Branch;
 use App\Module;
 use App\Company;
+use Carbon\Carbon;
 use App\Transmittal;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -27,17 +28,8 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Request $request, Transmittal $transmittal)
+    public function index(Request $request)
     {
-        return Access::find(2)->users;
-        $recipients = $transmittal->group->incharge;
-        $recipients->push(User::find(4));
-        return $recipients->merge(User::where('id', 1)->get());
-        return $recipients;
-        return User::find(4);
-        $recipients = User::whereIn('id', [1, 2, 1])->get();
-        return $recipients->merge(User::whereIn('id', [3, 4, 3])->get());
-
-        return $merged;
+        return Carbon::now()->format('Y-m-d');
     }
 }

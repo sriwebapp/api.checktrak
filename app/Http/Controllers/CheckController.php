@@ -198,7 +198,7 @@ class CheckController extends Controller
     public function claim(Request $request, Company $company)
     {
         $request->validate([
-            'date' => 'required|date',
+            'date' => 'required|date|before_or_equal:' . Carbon::now()->format('Y-m-d'),
             'checks' => 'required|array',
             'remarks' => 'max:50',
         ]);
