@@ -34,7 +34,7 @@ class ChecksReceivedNotification extends Notification
         return (new MailMessage)
                     ->subject('Checks Received')
                     ->greeting('Hello ' . (! $transmittal->returned ? $transmittal->user->name : $transmittal->returnedBy->name) . '!')
-                    ->line($transmittal->ref . ' successfully received by ' . $this->user->name . '.')
+                    ->line($transmittal->ref . ' already received by ' . $this->user->name . '.')
                     ->action('Go to App', url(config('app.ui_url')));
     }
 

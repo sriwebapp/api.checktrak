@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\User;
 use App\Check;
 use App\Group;
+use App\Access;
 use App\Action;
 use App\Branch;
 use App\Company;
@@ -17,8 +18,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\ChecksReturnedNotification;
 use App\Notifications\ChecksReceivedNotification;
+use App\Notifications\ChecksReturnedNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
@@ -89,6 +90,7 @@ class CheckController extends Controller
 
     public function transmit(Request $request, Company $company)
     {
+        ini_set('memory_limit', '2048M');
         // validate
         $request->validate([
             'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
@@ -132,10 +134,8 @@ class CheckController extends Controller
             $this->recordLog($check, 'trm', $request->get('date'));
         });
 
-        Notification::send($transmittal->group->incharge, new ChecksTransmittedNotification($transmittal));
-
         $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('payee')->get();
+        $transmittal->checks = $transmittal->checks()->with('payee')->orderBy('number')->get();
         $transmittal->user;
         $transmittal->inchargeUser;
 
@@ -146,6 +146,12 @@ class CheckController extends Controller
 
         Log::info($request->user()->name . ' transmitted checks.');
 
+        $incharges = $transmittal->group->incharge;
+        $incharges->push($request->user());
+        $recipients = $incharges->merge(Access::find(2)->users); // administrators
+
+        Notification::send($recipients, new ChecksTransmittedNotification($transmittal));
+
         return [
             'message' => 'Checks successfully transmitted.',
             'transmittal' => $transmittal->id,
@@ -154,6 +160,8 @@ class CheckController extends Controller
 
     public function receive(Request $request, Company $company)
     {
+        ini_set('memory_limit', '2048M');
+
         $request->validate([
             'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in(Transmittal::where('received', 0)->pluck('id')) ],
@@ -163,8 +171,8 @@ class CheckController extends Controller
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
         $checks = $transmittal->checks()->where('received', 0)->get();
-        // must be greater than zero
-        abort_unless($checks->count(), 400, "No check selected!");
+        // return transmittals even all are claimed
+        // abort_unless($checks->count(), 400, "No check selected!");
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
@@ -237,6 +245,8 @@ class CheckController extends Controller
 
     public function return(Request $request, Company $company)
     {
+        ini_set('memory_limit', '2048M');
+
         $request->validate([
             'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in(Transmittal::where('received', 1)->pluck('id')) ],
@@ -267,10 +277,8 @@ class CheckController extends Controller
             $this->recordLog($check, 'rtn', $request->get('date'), $request->get('remarks'));
         });
 
-        Notification::send(Group::first()->incharge, new ChecksReturnedNotification($transmittal));
-
         $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
+        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->orderBy('number')->get();
         $transmittal->user;
         $transmittal->inchargeUser;
 
@@ -286,6 +294,12 @@ class CheckController extends Controller
             ->setPaper('letter', 'portrait')
             ->setWarnings(false)
             ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf');
+
+        $incharges = Group::first()->incharge;
+        $incharges->push($request->user());
+        $recipients = $incharges->merge(Access::find(2)->users); // administrators
+
+        Notification::send($recipients, new ChecksReturnedNotification($transmittal));
 
         Log::info($request->user()->name . ' returned checks.');
 

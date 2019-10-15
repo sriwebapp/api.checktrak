@@ -20,7 +20,7 @@ class ImportController extends Controller
     {
         $this->authorize('import', Check::class);
 
-        ini_set('memory_limit', -1);
+        ini_set('memory_limit', '2048M');
 
         Log::info($request->user()->name . ' started importing checks.');
 
@@ -46,7 +46,7 @@ class ImportController extends Controller
     {
         $this->authorize('import', Check::class);
 
-        ini_set('memory_limit', -1);
+        ini_set('memory_limit', '2048M');
 
         Log::info($request->user()->name . ' started importing cleared checks.');
 
@@ -77,7 +77,7 @@ class ImportController extends Controller
     {
         $this->authorize('module', Module::where('code', 'pye')->first());
 
-        ini_set('memory_limit', -1);
+        ini_set('memory_limit', '2048M');
 
         Log::info($request->user()->name . ' started importing payees.');
 
