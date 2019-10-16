@@ -24,24 +24,44 @@ use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
 {
-    // show all for dev
     public function index(Request $request, Company $company)
     {
-        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+        if ($request->get('filterType') === 3 && $request->get('filterContent')) {
+            $checks = Transmittal::find($request->get('filterContent')['id'])->checks();
+        } else {
+            $checks = $company->checks();
+        }
 
+        $groups = Auth::user()->getGroups()->pluck('id');
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
         $order = $request->get('sortDesc') ?
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
 
-        $groups = Auth::user()->getGroups()->pluck('id');
+        return $checks
+            ->where( function($q) use ($request) {
+                $content = $request->get('filterContent');
 
-        return $company->checks()
+                $accountPayeeFilter = in_array($request->get('filterType'), [1, 2]) && $content;
+                $dateNumberFilter = in_array($request->get('filterType'), [4, 5]) && $content;
+                $detailsFilter = $request->get('filterType') === 6 && $content;
+                $statusFilter = $request->get('filterType') === 7 && $content;
+
+                if ($accountPayeeFilter) {
+                    $q->where($content['column'], $content['id']);
+                } elseif ($dateNumberFilter) {
+                    $from = $content['from'] < $content['to'] ? $content['from'] : $content['to'];
+                    $to = $content['from'] > $content['to'] ? $content['from'] : $content['to'];
+
+                    $q->whereBetween($content['column'], [$from, $to]);
+                } elseif ($detailsFilter) {
+                    $q->where('details', 'like', '%' . $content['searchDetail'] . '%');
+                } elseif ($statusFilter) {
+                    $q->whereIn('status_id', $content['statuses'])
+                        ->where('received', $content['received']);
+                }
+            })
             ->whereIn('group_id', $groups)
-            // ->where( function($q) use ($request) {
-            //     if ($request->get('filter')) {
-            //         $q->where('payee_id', 111466);
-            //     }
-            // })
             ->with('status')
             ->with('payee')
             ->with('account')

@@ -8,6 +8,7 @@ use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
+use App\Status;
 use App\Company;
 use Carbon\Carbon;
 use App\PayeeGroup;
@@ -25,6 +26,11 @@ class ToolController extends Controller
     public function actions()
     {
         return Action::get();
+    }
+
+    public function status()
+    {
+        return Status::get();
     }
 
     public function branches()
@@ -155,5 +161,13 @@ class ToolController extends Controller
     public function groupIncharge(Group $group)
     {
         return $group->incharge()->where('active', 1)->get();
+    }
+
+    public function transmittals(Request $request, Company $company)
+    {
+        return $company->transmittals()
+            ->where('ref', 'like', '%' . $request->get('search') . '%')
+            ->take(10)
+            ->get();
     }
 }
