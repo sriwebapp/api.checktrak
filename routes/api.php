@@ -54,6 +54,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::post('/clear', 'CheckController@clear');
             Route::post('/return', 'CheckController@return');
             Route::post('/cancel', 'CheckController@cancel');
+            Route::post('/undo', 'CheckController@undo');
             Route::get('/{check}', 'CheckController@show');
             Route::patch('/{check}', 'CheckController@edit');
             Route::delete('/{check}', 'CheckController@delete');

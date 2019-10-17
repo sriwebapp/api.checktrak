@@ -89,8 +89,9 @@
 - Company
 - Branch
 
--- todo minimize loading in startup
--- access conditional changing
+-- todo minimize loading in startup --
+-- access conditional changing --
 -- create handler for 503
 -- paginate transmittals
 -- throttle checks request
+-- throttle unauthorized response

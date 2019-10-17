@@ -20,7 +20,10 @@ class ToolController extends Controller
 {
     public function accounts(Company $company)
     {
-        return $company->accounts()->where('active', 1)->get();
+        return $company->accounts()
+            ->where('active', 1)
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     public function actions()
@@ -50,6 +53,7 @@ class ToolController extends Controller
             ->with('history')
             ->with('status')
             ->with('payee')
+            ->orderBy('id', 'desc')
             ->get();
     }
 
@@ -80,6 +84,7 @@ class ToolController extends Controller
                 $query->where('code', 'like', '%' . $request->get('search') . '%')
                     ->orWhere('name', 'like', '%' . $request->get('search') . '%');
             })
+            ->orderBy('id', 'desc')
             ->take(10)
             ->get();
     }
@@ -150,7 +155,9 @@ class ToolController extends Controller
 
     public function users()
     {
-        return User::where('active', 1)->get();
+        return User::where('active', 1)
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     public function branchUsers(Branch $branch)
@@ -167,6 +174,7 @@ class ToolController extends Controller
     {
         return $company->transmittals()
             ->where('ref', 'like', '%' . $request->get('search') . '%')
+            ->orderBy('id', 'desc')
             ->take(10)
             ->get();
     }

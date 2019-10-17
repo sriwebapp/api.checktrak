@@ -248,7 +248,7 @@ class CheckController extends Controller
             'amount' => 'required|numeric|gt:0',
         ]);
 
-        $check = Check::where('id', $request->get('check'))->first();
+        $check = Check::where('id', $request->get('check'))->firstOrFail();
         // must be greater than zero
         abort_unless($check, 400, "No check selected!");
 
@@ -378,7 +378,7 @@ class CheckController extends Controller
 
         $this->recordLog($check, 'edt', date('Y-m-d'), 'Details: ' . $request->get('details') );
 
-        Log::info($request->user()->name . ' edited checks.');
+        Log::info($request->user()->name . ' edited check.');
 
         return ['message' => 'Check successfully updated.'];
     }
@@ -393,19 +393,46 @@ class CheckController extends Controller
 
         $this->recordLog($check, 'dlt', date('Y-m-d'), $request->get('remarks'));
 
-        Log::info($request->user()->name . ' deleted checks.');
+        Log::info($request->user()->name . ' deleted check.');
 
         return ['message' => 'Check successfully deleted.'];
+    }
+
+    public function undo(Request $request, Company $company)
+    {
+        $request->validate([
+            'check' => 'required',
+            'remarks' => 'required|max:50'
+        ]);
+
+        $check = Check::where('id', $request->get('check'))->firstOrFail();
+
+        $this->authorize('undo', [$check, $company]);
+
+        $history = $check->history()->orderBy('id', 'desc')->get();
+
+        $state = json_decode($history[1]->state, true);
+
+        $check->update($state);
+
+        $this->recordLog($check, 'und', date('Y-m-d'), $request->get('remarks'));
+
+        Log::info($request->user()->name . ' undo check actions.');
+
+        return ['message' => 'Check successfully restored to previous state.'];
     }
     // record check log
     protected function recordLog(Check $check, $action, $date, $remarks = null)
     {
+        $fresh = Check::withTrashed()->find($check->id);
+
         History::create([
-            'check_id' => $check->id,
+            'check_id' => $fresh->id,
             'action_id' => Action::where('code', $action)->first()->id,
             'user_id' => Auth::user()->id,
             'date' => $date,
-            'remarks' => $remarks
+            'remarks' => $remarks,
+            'state' => json_encode($fresh->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
         ]);
     }
 }

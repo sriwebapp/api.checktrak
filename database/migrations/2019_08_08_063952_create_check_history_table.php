@@ -20,6 +20,7 @@ class CreateCheckHistoryTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->date('date');
             $table->string('remarks')->nullable();
+            $table->string('state');
             $table->timestamps();
 
             $table->foreign('check_id')->references('id')->on('checks')->onDelete('cascade');
