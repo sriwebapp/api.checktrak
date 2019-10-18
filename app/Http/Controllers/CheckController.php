@@ -190,6 +190,8 @@ class CheckController extends Controller
             'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', '<>', 'sent_checks')->pluck('id')) ],
             'remarks' => 'max:50',
+            'selectChecks' => 'required',
+            'selectedChecks' => 'array',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
@@ -273,25 +275,42 @@ class CheckController extends Controller
     {
         ini_set('memory_limit', '2048M');
 
+        $transmittals = Transmittal::where( function($q) {
+                $q->where( function($x) {
+                    $x->whereColumn('received_checks', 'sent_checks')
+                        ->where('returned', null);
+                })->orWhere( function($x) {
+                    $x->where('returned_all', 0)
+                        ->where('returned', '<>', null);
+                });
+            })->pluck('id');
+
         $request->validate([
             'date' => 'required|date',
-            'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', 'sent_checks')->pluck('id')) ],
+            'transmittal_id' => [ 'required', Rule::in($transmittals) ],
             'remarks' => 'max:50',
+            'selectChecks' => 'required',
+            'selectedChecks' => 'array',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
-        $checks = $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
+        $checks = $request->get('selectChecks') ?
+            Check::whereIn('id', $request->get('selectedChecks'))->get():
+            $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
         // return transmittals even all are claimed
-        // abort_unless($checks->count(), 400, "No checks available!");
+        abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
 
         $this->authorize('return', [Check::class, $checks]);
 
-        $transmittal->update([
+        $returned_all = $checks->count() === $transmittal->checks()->where('status_id', 2)->count();
+
+       $transmittal->update([
             'returnedBy_id' => $request->user()->id,
             'returned' => $request->get('date'),
-            'sent_checks' => $checks->count(),
+            'sent_checks' => $transmittal->sent_checks - $transmittal->received_checks + $checks->count(),
             'received_checks' => 0,
+            'returned_all' => $returned_all,
         ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
@@ -305,7 +324,7 @@ class CheckController extends Controller
         });
 
         $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->orderBy('number')->get();
+        $transmittal->checks = $transmittal->checks()->where('status_id', '<>', 2/*!transmitted*/)->with('history')->with('payee')->orderBy('number')->get();
         $transmittal->user;
         $transmittal->inchargeUser;
 
@@ -439,6 +458,18 @@ class CheckController extends Controller
                 $transmittal->update(['sent_checks' => $checks->count(), 'received_checks' => $transmittal->received_checks - 1]);
             } else {
                 $transmittal->update(['sent_checks' => $checks->count()]);
+            }
+        } elseif ($last_action->action_id === 5/*return*/) {
+            $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
+            // update base on check received status
+            if ($received) {
+                $transmittal->update([
+                    'sent_checks' => $transmittal->sent_checks - 1,
+                    'received_checks' => $transmittal->received_checks - 1,
+                    'returned_all' => 0,
+                ]);
+            } else {
+                $transmittal->update(['sent_checks' => $transmittal->sent_checks - 1, 'returned_all' => 0,]);
             }
         }
 

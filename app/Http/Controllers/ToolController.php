@@ -123,9 +123,15 @@ class ToolController extends Controller
             ->where('branch_id', Auth::user()->branch->id)
             ->whereIn('group_id', $groups)
             ->orderBy('id', 'desc')
-            ->where('returned', null)
-            ->whereColumn('received_checks', 'sent_checks')
-            ->get();
+            ->where( function($q) {
+                $q->where( function($x) {
+                    $x->whereColumn('received_checks', 'sent_checks')
+                        ->where('returned', null);
+                })->orWhere( function($x) {
+                    $x->where('returned_all', 0)
+                        ->where('returned', '<>', null);
+                });
+            })->get();
     }
 
     public function sentTransmittals(Company $company)

@@ -29,6 +29,7 @@ class CreateTransmittalsTable extends Migration
             $table->date('returned')->nullable();
             $table->unsignedInteger('sent_checks')->default(0);
             $table->unsignedInteger('received_checks')->default(0);
+            $table->boolean('returned_all')->default(0);
             $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups');
