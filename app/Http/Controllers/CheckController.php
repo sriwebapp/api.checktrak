@@ -216,7 +216,7 @@ class CheckController extends Controller
 
         $recipient = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
 
-        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $request->user()));
+        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $request->user()));
 
         Log::info($request->user()->name . ' received checks.');
 

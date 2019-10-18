@@ -16,6 +16,7 @@ class TransmittalController extends Controller
         $transmittals = $company->transmittals()
             ->whereIn('group_id', $groups)
             ->with('branch')
+            ->with('group')
             ->orderBy('id', 'desc')
             ->get();
 
