@@ -42,7 +42,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::delete('/{payee}', 'PayeeController@destroy');
         });
 
-        Route::get('/transmittal', 'TransmittalController@index');
+        Route::post('/transmittal', 'TransmittalController@index');
         Route::get('/transmittal/{transmittal}', 'TransmittalController@show');
 
         Route::prefix('/check')->group( function() {

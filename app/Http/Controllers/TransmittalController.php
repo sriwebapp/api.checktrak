@@ -9,8 +9,14 @@ use Illuminate\Support\Facades\Auth;
 
 class TransmittalController extends Controller
 {
-    public function index(Company $company)
+    public function index(Request $request, Company $company)
     {
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+
+        $order = $request->get('sortDesc') ?
+            ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
+            'desc';
+
         $groups = Auth::user()->getGroups()->pluck('id');
 
         $transmittals = $company->transmittals()
@@ -18,13 +24,15 @@ class TransmittalController extends Controller
             ->with('branch')
             ->with('group')
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate(10);
 
-        return $transmittals->map( function($transmittal) {
+        $transmittals->transform( function($transmittal) {
             $transmittal->checks = $transmittal->checks()->with('history')->get();
 
             return $transmittal;
         });
+
+        return $transmittals;
     }
 
     public function show(Company $company, Transmittal $transmittal)
