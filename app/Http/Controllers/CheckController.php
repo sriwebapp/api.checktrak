@@ -92,13 +92,16 @@ class CheckController extends Controller
 
         $check = Check::create([
             'number' => $request->get('check_number'),
-            'status_id' => 1, // created
             'company_id' => $company->id,
             'account_id' => $request->get('account_id'),
             'payee_id' => $request->get('payee_id'),
             'amount' => $request->get('amount'),
             'details' => $request->get('details'),
             'date' => $request->get('date'),
+            'status_id' => 1, // created
+            'received' => 1, // received
+            'branch_id' => 1, // head office
+            'group_id' => 1, // disbursement
         ]);
 
         $this->recordLog($check, 'crt', $request->get('date'));
@@ -140,6 +143,7 @@ class CheckController extends Controller
             'date' => $request->get('date'),
             'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y-m-d"),
             'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
+            'sent_checks' => $checks->count(),
         ]);
 
         $transmittal->checks()->sync($checks);
@@ -184,19 +188,21 @@ class CheckController extends Controller
 
         $request->validate([
             'date' => 'required|date',
-            'transmittal_id' => [ 'required', Rule::in(Transmittal::where('received', 0)->pluck('id')) ],
+            'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', '<>', 'sent_checks')->pluck('id')) ],
             'remarks' => 'max:50',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
-        $checks = $transmittal->checks()->where('received', 0)->get();
+        $checks = $request->get('selectChecks') ?
+            Check::whereIn('id', $request->get('selectedChecks'))->get():
+            $transmittal->checks()->where('received', 0)->get();
         // return transmittals even all are claimed
-        // abort_unless($checks->count(), 400, "No check selected!");
+        abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
-        $transmittal->update([ 'received' => 1 ]); // update transmittal
+        $transmittal->update([ 'received_checks' => $transmittal->received_checks + $checks->count() ]); // update transmittal
 
         $checks->each( function($check) use ($request, $transmittal) {
             $group = $transmittal->returned ? Group::first() : $transmittal->group;
@@ -269,7 +275,7 @@ class CheckController extends Controller
 
         $request->validate([
             'date' => 'required|date',
-            'transmittal_id' => [ 'required', Rule::in(Transmittal::where('received', 1)->pluck('id')) ],
+            'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', 'sent_checks')->pluck('id')) ],
             'remarks' => 'max:50',
         ]);
 
@@ -284,7 +290,8 @@ class CheckController extends Controller
         $transmittal->update([
             'returnedBy_id' => $request->user()->id,
             'returned' => $request->get('date'),
-            'received' => 0,
+            'sent_checks' => $checks->count(),
+            'received_checks' => 0,
         ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
@@ -404,16 +411,36 @@ class CheckController extends Controller
             'check' => 'required',
             'remarks' => 'required|max:50'
         ]);
-
+        // get check
         $check = Check::where('id', $request->get('check'))->firstOrFail();
-
+        // authorization
         $this->authorize('undo', [$check, $company]);
-
+        // check if already received
+        $received = $check->received;
+        // get history
         $history = $check->history()->orderBy('id', 'desc')->get();
-
-        $state = json_decode($history[1]->state, true);
-
-        $check->update($state);
+        // get state to be restored
+        $restoration_state = $history[0]->action_id === 3? $history[2]: $history[1];
+        // update check
+        $check->update(json_decode($restoration_state->state, true));
+        // get last action type
+        $last_action = $check->history()->orderBy('id', 'desc')->where('action_id', '<>', 3)->first();
+        // action base on last action
+        if ($last_action->action_id === 2/*transmitted*/) {
+            $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
+            // query transmittal checks except restored check
+            $checks = $transmittal->checks->reject( function($c) use ($check) {
+                return $c->id === $check->id;
+            });
+            // resync
+            $transmittal->checks()->sync($checks);
+            // update base on check received status
+            if ($received) {
+                $transmittal->update(['sent_checks' => $checks->count(), 'received_checks' => $transmittal->received_checks - 1]);
+            } else {
+                $transmittal->update(['sent_checks' => $checks->count()]);
+            }
+        }
 
         $this->recordLog($check, 'und', date('Y-m-d'), $request->get('remarks'));
 
@@ -424,15 +451,13 @@ class CheckController extends Controller
     // record check log
     protected function recordLog(Check $check, $action, $date, $remarks = null)
     {
-        $fresh = Check::withTrashed()->find($check->id);
-
         History::create([
-            'check_id' => $fresh->id,
+            'check_id' => $check->id,
             'action_id' => Action::where('code', $action)->first()->id,
             'user_id' => Auth::user()->id,
             'date' => $date,
             'remarks' => $remarks,
-            'state' => json_encode($fresh->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
+            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
         ]);
     }
 }

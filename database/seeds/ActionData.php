@@ -23,7 +23,7 @@ class ActionData extends Seeder
             ['name' => 'Edit', 'code' => 'edt', 'color' => 'orange'],
             ['name' => 'Delete', 'code' => 'dlt', 'color' => 'red'],
             ['name' => 'Import', 'code' => 'imt', 'color' => 'indigo'],
-            ['name' => 'Undo', 'code' => 'imt', 'color' => 'red'],
+            ['name' => 'Undo', 'code' => 'und', 'color' => 'red'],
         ]);
     }
 }

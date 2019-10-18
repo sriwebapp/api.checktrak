@@ -27,7 +27,8 @@ class CreateTransmittalsTable extends Migration
             $table->string('ref')->unique();
             $table->unsignedBigInteger('returnedBy_id')->nullable();
             $table->date('returned')->nullable();
-            $table->boolean('received')->default(0);
+            $table->unsignedInteger('sent_checks')->default(0);
+            $table->unsignedInteger('received_checks')->default(0);
             $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups');

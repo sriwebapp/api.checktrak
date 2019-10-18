@@ -53,17 +53,18 @@ class CheckImport implements ToCollection, WithHeadingRow
                 if(!$existing) {
                     try {
                         $check = Check::create([
-                            'status_id' => 1,
                             'number' => trim($row['cheque_no']),
                             'company_id' => $this->company->id,
                             'account_id' => $account->id,
                             'payee_id' => $payee->id,
-                            'group_id' => 1,
-                            'branch_id' => 1,
                             'import_id' => $this->import->id,
                             'amount' => trim($row['payment_amt']),
                             'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
                             'details' => trim($row['journal_remarks']),
+                            'status_id' => 1, // created
+                            'received' => 1, // received
+                            'branch_id' => 1, // head office
+                            'group_id' => 1, // disbursement
                         ]);
 
                         History::create([
@@ -71,7 +72,8 @@ class CheckImport implements ToCollection, WithHeadingRow
                             'action_id' => 1,
                             'user_id' => auth()->user()->id,
                             'date' => date('Y-m-d'),
-                            'remarks' => 'Imported'
+                            'remarks' => 'Imported',
+                            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
                         ]);
 
                         $this->importedRows++;

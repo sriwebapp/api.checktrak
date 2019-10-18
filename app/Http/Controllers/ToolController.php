@@ -124,7 +124,7 @@ class ToolController extends Controller
             ->whereIn('group_id', $groups)
             ->orderBy('id', 'desc')
             ->where('returned', null)
-            ->where('received', 1)
+            ->whereColumn('received_checks', 'sent_checks')
             ->get();
     }
 
@@ -135,7 +135,7 @@ class ToolController extends Controller
         return $company->transmittals()
             ->where('branch_id', Auth::user()->branch->id)
             ->whereIn('group_id', $groups)
-            ->where('received', 0)
+            ->whereColumn('received_checks', '<>', 'sent_checks')
             ->where('returned', null)
             ->orderBy('id', 'desc')
             ->get();
@@ -147,7 +147,7 @@ class ToolController extends Controller
 
         return $company->transmittals()
             ->whereIn('group_id', $groups)
-            ->where('received', 0)
+            ->whereColumn('received_checks', '<>', 'sent_checks')
             ->where('returned', '<>', null)
             ->orderBy('id', 'desc')
             ->get();

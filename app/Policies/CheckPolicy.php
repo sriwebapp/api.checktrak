@@ -122,7 +122,7 @@ class CheckPolicy
     public function undo(User $user, Check $check, Company $company)
     {
         $undoable = $check->company == $company
-            && $check->history->count() >= 2
+            && $check->history()->where('action_id', '<>', 3)->count() >= 2
             && $check->history()->orderBy('id', 'desc')->first()->action_id !== 11; /*undo*/
 
         $accessible = $user->getActions()->where('code', 'und')->count();
