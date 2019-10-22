@@ -127,11 +127,13 @@ class CheckController extends Controller
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
+        // must be less than or equal 500
+        abort_unless($checks->count() <= 500, 400, "Check limit of 500 exceeded.");
         // check authorization
         $this->authorize('transmit', [Check::class, $company, $checks]);
         // get group
         $group = Group::find($request->get('group_id'));
-        // create transmittal
+        // create transmittals
         $transmittal = Transmittal::create([
             'group_id' => $group->id,
             'branch_id' => $group->branch->id,
