@@ -8,6 +8,7 @@ use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
+use App\Status;
 use App\Company;
 use Carbon\Carbon;
 use App\PayeeGroup;
@@ -19,12 +20,20 @@ class ToolController extends Controller
 {
     public function accounts(Company $company)
     {
-        return $company->accounts()->where('active', 1)->get();
+        return $company->accounts()
+            ->where('active', 1)
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     public function actions()
     {
         return Action::get();
+    }
+
+    public function status()
+    {
+        return Status::get();
     }
 
     public function branches()
@@ -41,9 +50,10 @@ class ToolController extends Controller
     public function checks(Transmittal $transmittal)
     {
         return $transmittal->checks()
+            ->with('history')
             ->with('status')
-            ->with('account')
             ->with('payee')
+            ->orderBy('id', 'desc')
             ->get();
     }
 
@@ -74,6 +84,7 @@ class ToolController extends Controller
                 $query->where('code', 'like', '%' . $request->get('search') . '%')
                     ->orWhere('name', 'like', '%' . $request->get('search') . '%');
             })
+            ->orderBy('id', 'desc')
             ->take(10)
             ->get();
     }
@@ -95,7 +106,7 @@ class ToolController extends Controller
 
         $series = $transmittal ?
             sprintf('%04s', $transmittal->series + 1) :
-            '0000';
+            '0001';
 
         return [
             'series' => $series,
@@ -108,30 +119,51 @@ class ToolController extends Controller
     {
         $groups = Auth::user()->getGroups()->pluck('id');
 
-        $transmittals = $company->transmittals()
+        return $company->transmittals()
             ->where('branch_id', Auth::user()->branch->id)
             ->whereIn('group_id', $groups)
             ->orderBy('id', 'desc')
+            ->where( function($q) {
+                $q->where( function($x) {
+                    $x->whereColumn('received_checks', 'sent_checks')
+                        ->where('returned', null);
+                })->orWhere( function($x) {
+                    $x->where('returned_all', 0)
+                        ->where('returned', '<>', null);
+                });
+            })->get();
+    }
+
+    public function sentTransmittals(Company $company)
+    {
+        $groups = Auth::user()->getGroups()->pluck('id');
+
+        return $company->transmittals()
+            ->where('branch_id', Auth::user()->branch->id)
+            ->whereIn('group_id', $groups)
+            ->whereColumn('received_checks', '<>', 'sent_checks')
             ->where('returned', null)
-            ->with('checks')
+            ->orderBy('id', 'desc')
             ->get();
+    }
 
-        return $transmittals->filter(function ($transmittal) {
-            $notClaimed = $transmittal->checks()
-                ->where('status_id', 2)
-                ->count();
+    public function returnedTransmittals(Company $company)
+    {
+        $groups = Auth::user()->getGroups()->pluck('id');
 
-            $received = $transmittal->checks()
-                ->where('received', 0)
-                ->count() === 0;
-
-            return $notClaimed && $received;
-        })->values()->all();
+        return $company->transmittals()
+            ->whereIn('group_id', $groups)
+            ->whereColumn('received_checks', '<>', 'sent_checks')
+            ->where('returned', '<>', null)
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     public function users()
     {
-        return User::where('active', 1)->get();
+        return User::where('active', 1)
+            ->orderBy('id', 'desc')
+            ->get();
     }
 
     public function branchUsers(Branch $branch)
@@ -142,5 +174,14 @@ class ToolController extends Controller
     public function groupIncharge(Group $group)
     {
         return $group->incharge()->where('active', 1)->get();
+    }
+
+    public function transmittals(Request $request, Company $company)
+    {
+        return $company->transmittals()
+            ->where('ref', 'like', '%' . $request->get('search') . '%')
+            ->orderBy('id', 'desc')
+            ->take(10)
+            ->get();
     }
 }

@@ -5,13 +5,18 @@ namespace App\Http\Controllers;
 use App\User;
 use App\Check;
 use App\Group;
+use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
 use App\Company;
+use Carbon\Carbon;
 use App\Transmittal;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ChecksReceivedNotification;
 use App\Notifications\UserRegisteredNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
@@ -24,28 +29,8 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Request $request, Transmittal $transmittal)
+    public function index(Company $company)
     {
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
-        $transmittal->user;
-        $transmittal->inchargeUser;
-
-        $transmittal->checks->map( function($check) {
-            $claimed = $check->history->first( function($h) {
-                return $h->action_id === 4;
-            });
-            $check->claimed = $claimed ? $claimed->date : null;
-            return $check;
-        });
-
-        // return $transmittal->checks->where('claimed', null)->count();
-
-        // return $transmittal;
-
-        // return view('pdf.return', compact('transmittal'));
-
-        return \PDF::loadView('pdf.return', compact('transmittal'))
-            ->setPaper('letter', 'portrait')->stream();
+        return Action::where('id', '<>', 5)->where('id', '<>', 11)->get();
     }
 }

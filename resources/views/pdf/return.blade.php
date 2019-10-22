@@ -1,5 +1,13 @@
 @php
-    $checks = $transmittal->checks;
+    $checks = $transmittal->checks()->where('status_id', '<>', 2/*!transmitted*/)->orderBy('number')->get();
+
+    $checks->map( function($check) {
+        $claimed = $check->history->first( function($h) {
+            return $h->action_id === 4 && $h->active === 1;
+        });
+        $check->claimed = $claimed ? $claimed->date : null;
+        return $check;
+    });
 @endphp
 
 <!DOCTYPE html>
@@ -112,15 +120,15 @@
                 <td style="vertical-align: middle; width: 4%;">#</td>
                 <td style="vertical-align: middle; width: 8%;">Date</td>
                 <td style="vertical-align: middle; width: 8%;">Check #</td>
-                <td style="vertical-align: middle; width: 22%;">Payee Name</td>
-                <td style="vertical-align: middle; width: 37%;">Details</td>
+                <td style="vertical-align: middle; width: 30%;">Payee Name</td>
+                <td style="vertical-align: middle; width: 33%;">Details</td>
                 <td style="vertical-align: middle; width: 9%;">Amount</td>
-                <td style="vertical-align: middle; width: 12%;">Date Claimed</td>
+                <td style="vertical-align: middle; width: 8%;">Claimed</td>
             </tr>
         </thead>
         <tbody style="font-size: 10px">
             @foreach ($checks as $check)
-                <tr class="text-center">
+                <tr class="text-center {{ $check->claimed ? 'warning' : ''}}">
                     <td style="vertical-align: middle;">{{ $loop->index + 1 }}</td>
                     <td style="vertical-align: middle;">{{ \Carbon\Carbon::createFromFormat('Y-m-d', $check->date)->format('m/d/Y') }}</td>
                     <td style="vertical-align: middle;">{{ $check->number }}</td>
@@ -133,8 +141,8 @@
                 </tr>
             @endforeach
 
-            @if ( $checks->count() < 23 )
-                @for ($i = $checks->count(); $i < 23; $i++)
+            @if ( $checks->count() < 20 )
+                @for ($i = $checks->count(); $i < 20; $i++)
                     <tr>
                         <td style="padding: 12px;"> </td>
                         <td></td>
@@ -163,7 +171,7 @@
         <tr>
             <td>
                 <span class="legend">Prepared by:</span>
-                <span>{{ $transmittal->user->name }}</span>
+                <span>{{ $transmittal->returnedBy->name }}</span>
             </td>
             <td style="font-size: 10px; font-weight: bold; text-align: right; padding-bottom: 30px; width: 46%">I hereby certify that the checks I received were accounted and complete.</td>
         </tr>

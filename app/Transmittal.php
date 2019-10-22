@@ -33,6 +33,11 @@ class Transmittal extends Model
         return $this->belongsTo(User::class, 'incharge');
     }
 
+    public function returnedBy()
+    {
+        return $this->belongsTo(User::class, 'returnedBy_id');
+    }
+
     public function company()
     {
         return $this->belongsTo(Company::class);

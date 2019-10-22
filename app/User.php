@@ -56,6 +56,11 @@ class User extends Authenticatable
         return $this->hasMany(Transmittal::class, 'incharge');
     }
 
+    public function returnedTransmittals()
+    {
+        return $this->hasMany(Transmittal::class, 'returnedBy_id');
+    }
+
     public function inchargeGroups()
     {
         return $this->belongsToMany(Group::class, 'group_incharge', 'user_id');

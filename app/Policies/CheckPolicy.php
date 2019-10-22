@@ -102,7 +102,7 @@ class CheckPolicy
     public function edit(User $user, Check $check, Company $company)
     {
         $editable = $check->company == $company
-            && $check->status_id !== 6; /*cleared*/;
+            && $check->status_id !== 6; /*cleared*/
 
         $accessible = $user->getActions()->where('code', 'edt')->count();
 
@@ -112,11 +112,22 @@ class CheckPolicy
     public function delete(User $user, Check $check, Company $company)
     {
         $deletable = $check->company == $company
-            && $check->status_id === 1; /*created*/;
+            && $check->status_id === 1; /*created*/
 
         $accessible = $user->getActions()->where('code', 'dlt')->count();
 
         return $accessible && $deletable;
+    }
+
+    public function undo(User $user, Check $check, Company $company)
+    {
+        $undoable = $check->company == $company
+            && $check->history()->where('action_id', '<>', 3)->count() >= 2
+            && $check->history()->orderBy('id', 'desc')->first()->action_id !== 11; /*undo*/
+
+        $accessible = $user->getActions()->where('code', 'und')->count();
+
+        return $accessible && $undoable;
     }
 
     public function show(User $user, Check $check, Company $company)

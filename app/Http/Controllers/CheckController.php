@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\User;
 use App\Check;
 use App\Group;
+use App\Access;
 use App\Action;
 use App\Branch;
 use App\Company;
@@ -16,29 +17,51 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Notification;
+use App\Notifications\ChecksReceivedNotification;
 use App\Notifications\ChecksReturnedNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
 class CheckController extends Controller
 {
-    // show all for dev
     public function index(Request $request, Company $company)
     {
-        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+        if ($request->get('filterType') === 3 && $request->get('filterContent')) {
+            $checks = Transmittal::find($request->get('filterContent')['id'])->checks();
+        } else {
+            $checks = $company->checks();
+        }
 
+        $groups = Auth::user()->getGroups()->pluck('id');
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
         $order = $request->get('sortDesc') ?
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
 
-        $groups = Auth::user()->getGroups()->pluck('id');
+        return $checks
+            ->where( function($q) use ($request) {
+                $content = $request->get('filterContent');
 
-        return $company->checks()
+                $accountPayeeFilter = in_array($request->get('filterType'), [1, 2]) && $content;
+                $dateNumberFilter = in_array($request->get('filterType'), [4, 5]) && $content;
+                $detailsFilter = $request->get('filterType') === 6 && $content;
+                $statusFilter = $request->get('filterType') === 7 && $content;
+
+                if ($accountPayeeFilter) {
+                    $q->where($content['column'], $content['id']);
+                } elseif ($dateNumberFilter) {
+                    $from = $content['from'] < $content['to'] ? $content['from'] : $content['to'];
+                    $to = $content['from'] > $content['to'] ? $content['from'] : $content['to'];
+
+                    $q->whereBetween($content['column'], [$from, $to]);
+                } elseif ($detailsFilter) {
+                    $q->where('details', 'like', '%' . $content['searchDetail'] . '%');
+                } elseif ($statusFilter) {
+                    $q->whereIn('status_id', $content['statuses'])
+                        ->where('received', $content['received']);
+                }
+            })
             ->whereIn('group_id', $groups)
-            // ->where( function($q) use ($request) {
-            //     if ($request->get('filter')) {
-            //         $q->where('payee_id', 111466);
-            //     }
-            // })
             ->with('status')
             ->with('payee')
             ->with('account')
@@ -69,13 +92,16 @@ class CheckController extends Controller
 
         $check = Check::create([
             'number' => $request->get('check_number'),
-            'status_id' => 1, // created
             'company_id' => $company->id,
             'account_id' => $request->get('account_id'),
             'payee_id' => $request->get('payee_id'),
             'amount' => $request->get('amount'),
             'details' => $request->get('details'),
             'date' => $request->get('date'),
+            'status_id' => 1, // created
+            'received' => 1, // received
+            'branch_id' => 1, // head office
+            'group_id' => 1, // disbursement
         ]);
 
         $this->recordLog($check, 'crt', $request->get('date'));
@@ -87,6 +113,7 @@ class CheckController extends Controller
 
     public function transmit(Request $request, Company $company)
     {
+        ini_set('memory_limit', '2048M');
         // validate
         $request->validate([
             'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
@@ -94,7 +121,7 @@ class CheckController extends Controller
             'date' => 'required|date',
             'ref' => 'required|unique:transmittals,ref',
             'series' => 'required',
-            'checks' => 'required|array'
+            'checks' => 'array|nullable'
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -116,27 +143,20 @@ class CheckController extends Controller
             'date' => $request->get('date'),
             'due' => Carbon::create( $request->get('date') )->addDays(30)->format("Y-m-d"),
             'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
+            'sent_checks' => $checks->count(),
         ]);
-
+        // sync checks
         $transmittal->checks()->sync($checks);
         // record history and update status
         $checks->each( function($check) use ($request, $group) {
             $check->update([
                 'status_id' => 2,
                 'received' => 0,
-                'group_id' => $group->id,
                 'branch_id' => $group->branch->id
             ]); // transmitted
 
             $this->recordLog($check, 'trm', $request->get('date'));
         });
-
-        $transmittal->inchargeUser->notify(new ChecksTransmittedNotification($transmittal));
-
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('payee')->get();
-        $transmittal->user;
-        $transmittal->inchargeUser;
 
         \PDF::loadView('pdf.transmittal', compact('transmittal'))
             ->setPaper('letter', 'portrait')
@@ -145,35 +165,53 @@ class CheckController extends Controller
 
         Log::info($request->user()->name . ' transmitted checks.');
 
+        $incharges = $transmittal->group->incharge;
+        $incharges->push($request->user());
+        $recipients = $incharges->merge(Access::find(2)->users); // administrators
+
+        Notification::send($recipients, new ChecksTransmittedNotification($transmittal));
+
         return [
             'message' => 'Checks successfully transmitted.',
             'transmittal' => $transmittal->id,
         ];
     }
 
-    public function receive(Request $request, Company $company/*, Transmittal $transmittal*/)
+    public function receive(Request $request, Company $company)
     {
-        // $checks = $transmittal->checks()->where('received', 0)->get();
+        ini_set('memory_limit', '2048M');
 
         $request->validate([
             'date' => 'required|date',
-            'checks' => 'required|array',
-            'remarks' => 'max:191',
+            'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', '<>', 'sent_checks')->pluck('id')) ],
+            'remarks' => 'max:50',
+            'selectChecks' => 'required',
+            'selectedChecks' => 'array',
         ]);
 
-        $checks = Check::whereIn('id', $request->get('checks'))->get();
-        // must be greater than zero
-        abort_unless($checks->count(), 400, "No check selected!");
+        $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
+
+        $checks = $request->get('selectChecks') ?
+            Check::whereIn('id', $request->get('selectedChecks'))->get():
+            $transmittal->checks()->where('received', 0)->get();
+        // return transmittals even all are claimed
+        abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
-        // $transmittal->update([ 'received' => 1 ]); // update transmittal
+        $transmittal->update([ 'received_checks' => $transmittal->received_checks + $checks->count() ]); // update transmittal
 
-        $checks->each( function($check) use ($request) {
-            $check->update(['received' => 1]);
+        $checks->each( function($check) use ($request, $transmittal) {
+            $group = $transmittal->returned ? Group::first() : $transmittal->group;
+
+            $check->update(['received' => 1, 'group_id' => $group->id]);
 
             $this->recordLog($check, 'rcv', $request->get('date'), $request->get('remarks'));
         });
+
+        $recipient = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
+
+        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $request->user()));
 
         Log::info($request->user()->name . ' received checks.');
 
@@ -183,9 +221,9 @@ class CheckController extends Controller
     public function claim(Request $request, Company $company)
     {
         $request->validate([
-            'date' => 'required|date',
-            'checks' => 'required|array',
-            'remarks' => 'max:191',
+            'date' => 'required|date|before_or_equal:' . Carbon::now()->format('Y-m-d'),
+            'checks' => 'array|nullable',
+            'remarks' => 'max:50',
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -213,7 +251,7 @@ class CheckController extends Controller
             'amount' => 'required|numeric|gt:0',
         ]);
 
-        $check = Check::where('id', $request->get('check'))->first();
+        $check = Check::where('id', $request->get('check'))->firstOrFail();
         // must be greater than zero
         abort_unless($check, 400, "No check selected!");
 
@@ -230,55 +268,66 @@ class CheckController extends Controller
 
     public function return(Request $request, Company $company)
     {
+        ini_set('memory_limit', '2048M');
+
+        $transmittals = Transmittal::where( function($q) {
+                $q->where( function($x) {
+                    $x->whereColumn('received_checks', 'sent_checks')
+                        ->where('returned', null);
+                })->orWhere( function($x) {
+                    $x->where('returned_all', 0)
+                        ->where('returned', '<>', null);
+                });
+            })->pluck('id');
+
         $request->validate([
             'date' => 'required|date',
-            'transmittal_id' => 'required|exists:transmittals,id'
+            'transmittal_id' => [ 'required', Rule::in($transmittals) ],
+            'remarks' => 'max:50',
+            'selectChecks' => 'required',
+            'selectedChecks' => 'array',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
-        $checks = $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
-        // must be greater than zero
-        abort_unless($checks->count(), 400, "No checks available!");
+        $checks = $request->get('selectChecks') ?
+            Check::whereIn('id', $request->get('selectedChecks'))->get():
+            $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
+        // return transmittals even all are claimed
+        abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
 
         $this->authorize('return', [Check::class, $checks]);
 
-        $transmittal->update([ 'returned' => $request->get('date') ]); // update transmittal
+        $returned_all = $checks->count() === $transmittal->checks()->where('status_id', 2)->count();
+
+       $transmittal->update([
+            'returnedBy_id' => $request->user()->id,
+            'returned' => $request->get('date'),
+            'sent_checks' => $transmittal->sent_checks - $transmittal->received_checks + $checks->count(),
+            'received_checks' => 0,
+            'returned_all' => $returned_all,
+        ]); // update transmittal
 
         $checks->each( function($check) use ($request) {
             $check->update([
                 'status_id' => 4,
                 'received' => 0,
-                'group_id' => 1,
                 'branch_id' => 1
             ]); // returned
 
-            $this->recordLog($check, 'rtn', $request->get('date'));
-        });
-
-
-
-        Group::first()->incharge->each( function($incharge) use ($transmittal) {
-            $incharge->notify(new ChecksReturnedNotification($transmittal));
-        });
-
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('history')->with('payee')->get();
-        $transmittal->user;
-        $transmittal->inchargeUser;
-
-        $transmittal->checks->map( function($check) {
-            $claimed = $check->history->first( function($h) {
-                return $h->action_id === 4;
-            });
-            $check->claimed = $claimed ? $claimed->date : null;
-            return $check;
+            $this->recordLog($check, 'rtn', $request->get('date'), $request->get('remarks'));
         });
 
         \PDF::loadView('pdf.return', compact('transmittal'))
             ->setPaper('letter', 'portrait')
             ->setWarnings(false)
             ->save( public_path() . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf');
+
+        $incharges = Group::first()->incharge;
+        $incharges->push($request->user());
+        $recipients = $incharges->merge(Access::find(2)->users); // administrators
+
+        Notification::send($recipients, new ChecksReturnedNotification($transmittal));
 
         Log::info($request->user()->name . ' returned checks.');
 
@@ -289,8 +338,8 @@ class CheckController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'checks' => 'required|array',
-            'remarks' => 'required|max:191',
+            'checks' => 'array|nullable',
+            'remarks' => 'required|max:50',
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -337,14 +386,14 @@ class CheckController extends Controller
 
         $this->recordLog($check, 'edt', date('Y-m-d'), 'Details: ' . $request->get('details') );
 
-        Log::info($request->user()->name . ' edited checks.');
+        Log::info($request->user()->name . ' edited check.');
 
         return ['message' => 'Check successfully updated.'];
     }
 
     public function delete(Request $request, Company $company, Check $check)
     {
-        $request->validate([ 'remarks' => 'required|max:191' ]);
+        $request->validate([ 'remarks' => 'required|max:50' ]);
 
         $this->authorize('delete', [$check, $company]);
 
@@ -352,9 +401,67 @@ class CheckController extends Controller
 
         $this->recordLog($check, 'dlt', date('Y-m-d'), $request->get('remarks'));
 
-        Log::info($request->user()->name . ' deleted checks.');
+        Log::info($request->user()->name . ' deleted check.');
 
         return ['message' => 'Check successfully deleted.'];
+    }
+
+    public function undo(Request $request, Company $company)
+    {
+        $request->validate([
+            'check' => 'required',
+            'remarks' => 'required|max:50'
+        ]);
+        // get check
+        $check = Check::where('id', $request->get('check'))->firstOrFail();
+        // authorization
+        $this->authorize('undo', [$check, $company]);
+        // check if already received
+        $received = $check->received;
+        // get history
+        $history = $check->history()->orderBy('id', 'desc')->get();
+        // get state to be restored
+        $restoration_state = $history[0]->action_id === 3? $history[2]: $history[1];
+        // update check
+        $check->update(json_decode($restoration_state->state, true));
+        // get last action type
+        $last_action = $check->history()->orderBy('id', 'desc')->where('action_id', '<>', 3)->first();
+        // set last action as inactive
+        $last_action->update(['active' => 0]);
+        // action base on last action
+        if ($last_action->action_id === 2/*transmitted*/) {
+            $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
+            // query transmittal checks except restored check
+            $checks = $transmittal->checks->reject( function($c) use ($check) {
+                return $c->id === $check->id;
+            });
+            // resync
+            $transmittal->checks()->sync($checks);
+            // update base on check received status
+            if ($received) {
+                $transmittal->update(['sent_checks' => $checks->count(), 'received_checks' => $transmittal->received_checks - 1]);
+            } else {
+                $transmittal->update(['sent_checks' => $checks->count()]);
+            }
+        } elseif ($last_action->action_id === 5/*return*/) {
+            $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
+            // update base on check received status
+            if ($received) {
+                $transmittal->update([
+                    'sent_checks' => $transmittal->sent_checks - 1,
+                    'received_checks' => $transmittal->received_checks - 1,
+                    'returned_all' => 0,
+                ]);
+            } else {
+                $transmittal->update(['sent_checks' => $transmittal->sent_checks - 1, 'returned_all' => 0,]);
+            }
+        }
+
+        $this->recordLog($check, 'und', date('Y-m-d'), $request->get('remarks'));
+
+        Log::info($request->user()->name . ' undo check actions.');
+
+        return ['message' => 'Check successfully restored to previous state.'];
     }
     // record check log
     protected function recordLog(Check $check, $action, $date, $remarks = null)
@@ -364,7 +471,8 @@ class CheckController extends Controller
             'action_id' => Action::where('code', $action)->first()->id,
             'user_id' => Auth::user()->id,
             'date' => $date,
-            'remarks' => $remarks
+            'remarks' => $remarks,
+            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
         ]);
     }
 }

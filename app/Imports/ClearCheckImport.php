@@ -55,7 +55,8 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                             'action_id' => 7,
                             'user_id' => auth()->user()->id,
                             'date' => Carbon::createFromFormat('m/d/Y', trim($row['date_cleared']))->format('Y-m-d'),
-                            'remarks' => 'Imported'
+                            'remarks' => 'Imported',
+                            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
                         ]);
 
                         $this->importedRows++;
@@ -75,6 +76,8 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                 $this->handle($row, 5);
             }
         });
+
+        $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
     public function handle($row, $reason)

@@ -25,8 +25,11 @@ class CreateTransmittalsTable extends Migration
             $table->date('date');
             $table->date('due');
             $table->string('ref')->unique();
+            $table->unsignedBigInteger('returnedBy_id')->nullable();
             $table->date('returned')->nullable();
-            $table->boolean('received')->default(0);
+            $table->unsignedInteger('sent_checks')->default(0);
+            $table->unsignedInteger('received_checks')->default(0);
+            $table->boolean('returned_all')->default(0);
             $table->timestamps();
 
             $table->foreign('group_id')->references('id')->on('groups');
@@ -34,6 +37,7 @@ class CreateTransmittalsTable extends Migration
             $table->foreign('company_id')->references('id')->on('companies');
             $table->foreign('user_id')->references('id')->on('users');
             $table->foreign('incharge')->references('id')->on('users');
+            $table->foreign('returnedBy_id')->references('id')->on('users');
         });
     }
 

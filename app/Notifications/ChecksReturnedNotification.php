@@ -21,23 +21,26 @@ class ChecksReturnedNotification extends Notification
 
     public function toMail($notifiable)
     {
+        $transmittal = $this->transmittal;
+        $claimed = $transmittal->checks->filter( function($check) {
+            return $check->history->first( function($h) {
+                return $h->action_id === 4;
+            });
+        });
+
         return (new MailMessage)
                     ->subject('Checks Returned')
-                    ->greeting('Hello ' . $this->transmittal->inchargeUser->name . '!')
-                    ->line(
-                        $this->transmittal->checks->count() . ' checks are returned to your office, ' .
-                        ' with total amount of Php ' . $this->transmittal->checks->sum('amount') . '.'
-                    )
-                    ->action('Go to App', url(config('app.ui_url')))
-                   ->line('Thank you for using our application!');
+                    ->greeting('Hi Disbursement Group!')
+                    ->line('You will receive returned ' . $transmittal->ref . ' with the following details:')
+                    ->line('Date Transmitted : ' . \Carbon\Carbon::createFromFormat('Y-m-d', $transmittal->date)->format('M d, Y'))
+                    ->line('Date Returned  : ' . \Carbon\Carbon::createFromFormat('Y-m-d', $transmittal->returned)->format('M d, Y'))
+                    ->line('Total No of Checks Transmitted : ' . $transmittal->checks->count() )
+                    ->line('Total No of Checks Claimed : ' . $claimed->count() )
+                    ->line('Total No of Checks Returned : ' . ($transmittal->checks->count() - $claimed->count()))
+                    ->line('Please see attached for your reference.')
+                    ->action('View Attachment', url(config('app.url') . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf'));
     }
 
-    /**
-     * Get the array representation of the notification.
-     *
-     * @param  mixed  $notifiable
-     * @return array
-     */
     public function toArray($notifiable)
     {
         return [

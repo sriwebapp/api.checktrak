@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/test/{transmittal}', 'TestController@index');
+Route::get('/test/{company}', 'TestController@index');
 
 Route::post('/login', 'AuthController@login');
 Route::post('/password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail');
@@ -42,7 +42,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::delete('/{payee}', 'PayeeController@destroy');
         });
 
-        Route::get('/transmittal', 'TransmittalController@index');
+        Route::post('/transmittal', 'TransmittalController@index');
         Route::get('/transmittal/{transmittal}', 'TransmittalController@show');
 
         Route::prefix('/check')->group( function() {
@@ -54,6 +54,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::post('/clear', 'CheckController@clear');
             Route::post('/return', 'CheckController@return');
             Route::post('/cancel', 'CheckController@cancel');
+            Route::post('/undo', 'CheckController@undo');
             Route::get('/{check}', 'CheckController@show');
             Route::patch('/{check}', 'CheckController@edit');
             Route::delete('/{check}', 'CheckController@delete');
@@ -69,6 +70,7 @@ Route::middleware(['auth:api'])->group(function() {
 
     Route::prefix('/tools')->group( function() {
         Route::get('/actions', "ToolController@actions");
+        Route::get('/status', "ToolController@status");
         Route::get('/branches', "ToolController@branches");
         Route::get('/groups', "ToolController@groups");
         Route::get('/company/{company}', 'ToolController@company');
@@ -81,9 +83,10 @@ Route::middleware(['auth:api'])->group(function() {
         Route::post('/payees/{company}', 'ToolController@payees');
         Route::get('/accounts/{company}', 'ToolController@accounts');
         Route::get('/transmittalRef/{company}/{branch}', 'ToolController@transmittalRef');
-        // Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
-        // Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
         Route::get('/transmittals/received/{company}', 'ToolController@receivedTransmittals');
+        Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
+        Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
+        Route::post('/transmittals/{company}', 'ToolController@transmittals');
         Route::get('/checks/{transmittal}', 'ToolController@checks');
     });
 });
