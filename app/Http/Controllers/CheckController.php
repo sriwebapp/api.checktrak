@@ -121,7 +121,7 @@ class CheckController extends Controller
             'date' => 'required|date',
             'ref' => 'required|unique:transmittals,ref',
             'series' => 'required',
-            'checks' => 'required|array'
+            'checks' => 'array|nullable'
         ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
@@ -145,7 +145,7 @@ class CheckController extends Controller
             'ref' => $company->code . '-' . $group->branch->code . '-' . date('Y') . '-' . $request->get('series'),
             'sent_checks' => $checks->count(),
         ]);
-
+        // sync checks
         $transmittal->checks()->sync($checks);
         // record history and update status
         $checks->each( function($check) use ($request, $group) {
@@ -157,11 +157,6 @@ class CheckController extends Controller
 
             $this->recordLog($check, 'trm', $request->get('date'));
         });
-
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->with('payee')->orderBy('number')->get();
-        $transmittal->user;
-        $transmittal->inchargeUser;
 
         \PDF::loadView('pdf.transmittal', compact('transmittal'))
             ->setPaper('letter', 'portrait')
@@ -227,7 +222,7 @@ class CheckController extends Controller
     {
         $request->validate([
             'date' => 'required|date|before_or_equal:' . Carbon::now()->format('Y-m-d'),
-            'checks' => 'required|array',
+            'checks' => 'array|nullable',
             'remarks' => 'max:50',
         ]);
 
@@ -323,19 +318,6 @@ class CheckController extends Controller
             $this->recordLog($check, 'rtn', $request->get('date'), $request->get('remarks'));
         });
 
-        $transmittal->company;
-        $transmittal->checks = $transmittal->checks()->where('status_id', '<>', 2/*!transmitted*/)->with('history')->with('payee')->orderBy('number')->get();
-        $transmittal->user;
-        $transmittal->inchargeUser;
-
-        $transmittal->checks->map( function($check) {
-            $claimed = $check->history->first( function($h) {
-                return $h->action_id === 4;
-            });
-            $check->claimed = $claimed ? $claimed->date : null;
-            return $check;
-        });
-
         \PDF::loadView('pdf.return', compact('transmittal'))
             ->setPaper('letter', 'portrait')
             ->setWarnings(false)
@@ -356,7 +338,7 @@ class CheckController extends Controller
     {
         $request->validate([
             'date' => 'required|date',
-            'checks' => 'required|array',
+            'checks' => 'array|nullable',
             'remarks' => 'required|max:50',
         ]);
 
@@ -444,6 +426,8 @@ class CheckController extends Controller
         $check->update(json_decode($restoration_state->state, true));
         // get last action type
         $last_action = $check->history()->orderBy('id', 'desc')->where('action_id', '<>', 3)->first();
+        // set last action as inactive
+        $last_action->update(['active' => 0]);
         // action base on last action
         if ($last_action->action_id === 2/*transmitted*/) {
             $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/

@@ -20,6 +20,7 @@ class CreateCheckHistoryTable extends Migration
             $table->unsignedBigInteger('user_id');
             $table->date('date');
             $table->string('remarks')->nullable();
+            $table->boolean('active')->default(1);
             $table->string('state');
             $table->timestamps();
 

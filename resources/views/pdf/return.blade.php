@@ -1,5 +1,13 @@
 @php
-    $checks = $transmittal->checks;
+    $checks = $transmittal->checks()->where('status_id', '<>', 2/*!transmitted*/)->orderBy('number')->get();
+
+    $checks->map( function($check) {
+        $claimed = $check->history->first( function($h) {
+            return $h->action_id === 4 && $h->active === 1;
+        });
+        $check->claimed = $claimed ? $claimed->date : null;
+        return $check;
+    });
 @endphp
 
 <!DOCTYPE html>

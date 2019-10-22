@@ -92,7 +92,7 @@
 -- todo minimize loading in startup --ok
 -- access conditional changing --ok
 -- create handler for 503
--- paginate transmittals
+-- paginate transmittals --ok
 -- throttle checks request
 -- throttle unauthorized response
 -- review cancel condition

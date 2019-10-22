@@ -104,7 +104,7 @@
             </tr>
         </thead>
         <tbody style="font-size: 10px">
-            @foreach ($transmittal->checks as $check)
+            @foreach ($transmittal->checks()->orderBy('number')->get() as $check)
                 <tr class="text-center">
                     <td style="vertical-align: middle;">{{ $loop->index + 1 }}</td>
                     <td style="vertical-align: middle;">{{ \Carbon\Carbon::createFromFormat('Y-m-d', $check->date)->format('m/d/Y') }}</td>
