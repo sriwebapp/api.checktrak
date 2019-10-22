@@ -29,14 +29,5 @@ class UserData extends Seeder
             'access_id' => 2, // administrator
             'branch_id' => 1, // head office
         ]);
-
-        User::create([
-            'name' => 'Charmaine Carillo',
-            'username' => 'charm',
-            'email' => 'charmaine.carillo@csic.ph',
-            'password' => bcrypt(config('app.default_pass')), // password
-            'access_id' => 3, // administrator
-            'branch_id' => 1, // head office
-        ]);
     }
 }
