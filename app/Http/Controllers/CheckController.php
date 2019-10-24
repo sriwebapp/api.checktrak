@@ -376,6 +376,13 @@ class CheckController extends Controller
         $this->authorize('stale', [Check::class, $company, $checks]);
 
         $checks->each( function($check) use ($request) {
+            if (! $check->received) {
+                $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
+                $transmittal->update([
+                    'sent_checks' => $transmittal->sent_checks ? $transmittal->sent_checks - 1 : 0,
+                ]);
+            }
+
             $check->update([ 'status_id' => 7, 'received' => 1]); // staled
 
             $this->recordLog($check, 'stl', $request->get('date'), $request->get('remarks'));
@@ -383,7 +390,7 @@ class CheckController extends Controller
 
         Log::info($request->user()->name . ' staled checks.');
 
-        return ['message' => 'Checks staled.'];
+        return ['message' => 'Checks marked staled.'];
     }
 
     public function show(Company $company, $id)
@@ -448,7 +455,7 @@ class CheckController extends Controller
         // get history
         $history = $check->history()->orderBy('id', 'desc')->get();
         // get state to be restored
-        $restoration_state = $history[0]->action_id === 3? $history[2]: $history[1];
+        $restoration_state = json_decode($history[1]->state, true)['received'] ? $history[1]: $history[2];
         // update check
         $check->update(json_decode($restoration_state->state, true));
         // get last action type

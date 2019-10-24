@@ -31,10 +31,10 @@ class TestController extends Controller
 
     public function index(Company $company)
     {
-        $now = Carbon::now()->subDays(80)->format('Y-m-d');
+        $check = Check::find(798);
 
-        return $now;
+        $history = $check->history()->orderBy('id', 'desc')->get();
 
-        return $company->checks()->where('date', '<=', $now)->pluck('id');
+        return json_decode($history[1]->state, true)['received'];
     }
 }

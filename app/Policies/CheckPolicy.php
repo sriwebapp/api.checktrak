@@ -138,7 +138,8 @@ class CheckPolicy
     {
         $undoable = $check->company == $company
             && $check->history()->where('action_id', '<>', 3)->count() >= 2
-            && $check->history()->orderBy('id', 'desc')->first()->action_id !== 11; /*undo*/
+            && $check->history()->orderBy('id', 'desc')->first()->action_id !== 11 /*undo*/
+            && $check->history()->orderBy('id', 'desc')->first()->action_id !== 12; /*stale*/
 
         $accessible = $user->getActions()->where('code', 'und')->count();
 
