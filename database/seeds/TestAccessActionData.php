@@ -18,7 +18,7 @@ class TestAccessActionData extends Seeder
         $branch = Access::where('id', 4)->first();
 
         $admin->actions()->sync(Action::where('id', '<>', 5)->get());
-        $head->actions()->sync(Action::where('id', '<>', 5)->where('id', '<>', 11)->get());
+        $head->actions()->sync(Action::where('id', '<>', 5)->where('id', '<>', 11)->where('id', '<>', 12)->get());
         $branch->actions()->sync(Action::whereIn('id', [3, 4, 5])->get());
     }
 }

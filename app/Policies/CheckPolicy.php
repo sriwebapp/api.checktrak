@@ -5,6 +5,7 @@ namespace App\Policies;
 use App\User;
 use App\Check;
 use App\Company;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
@@ -97,6 +98,20 @@ class CheckPolicy
         $accessible = $user->getActions()->where('code', 'cnl')->count();
 
         return $accessible && $cancelable;
+    }
+
+    public function stale(User $user, Company $company, Collection $checks)
+    {
+        $stalable = $checks->every( function($check) use ($company, $user) {
+            return $check->company == $company
+                && $user->getGroups()->where('id', $check->group->id )->count()
+                && $check->date <= Carbon::now()->subDays(80)->format('Y-m-d')
+                && ! in_array($check->status_id, [5, 6, 7]); /*cancelled, cleared, staled*/
+        });
+
+        $accessible = $user->getActions()->where('code', 'stl')->count();
+
+        return $accessible && $stalable;
     }
 
     public function edit(User $user, Check $check, Company $company)

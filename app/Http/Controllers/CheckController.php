@@ -361,6 +361,31 @@ class CheckController extends Controller
         return ['message' => 'Checks cancelled.'];
     }
 
+    public function stale(Request $request, Company $company)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'checks' => 'array|nullable',
+            'remarks' => 'max:50',
+        ]);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
+
+        $this->authorize('stale', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) use ($request) {
+            $check->update([ 'status_id' => 7, 'received' => 1]); // staled
+
+            $this->recordLog($check, 'stl', $request->get('date'), $request->get('remarks'));
+        });
+
+        Log::info($request->user()->name . ' staled checks.');
+
+        return ['message' => 'Checks staled.'];
+    }
+
     public function show(Company $company, $id)
     {
         $check = Check::withTrashed()->findOrFail($id);

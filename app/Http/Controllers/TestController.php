@@ -31,6 +31,10 @@ class TestController extends Controller
 
     public function index(Company $company)
     {
-        return Action::where('id', '<>', 5)->where('id', '<>', 11)->get();
+        $now = Carbon::now()->subDays(80)->format('Y-m-d');
+
+        return $now;
+
+        return $company->checks()->where('date', '<=', $now)->pluck('id');
     }
 }
