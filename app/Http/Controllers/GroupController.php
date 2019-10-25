@@ -22,7 +22,7 @@ class GroupController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return Group::with('branch')->with('incharge')->get();
+        return Group::with('branch')->with('incharge')->orderBy('id', 'desc')->get();
     }
 
     public function store(Request $request)

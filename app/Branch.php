@@ -10,12 +10,12 @@ class Branch extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->hasMany(User::class)->where('active', 1);
     }
 
     public function groups()
     {
-        return $this->hasMany(Group::class);
+        return $this->hasMany(Group::class)->where('active', 1);
     }
 
     public function transmittals()

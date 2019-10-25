@@ -23,8 +23,8 @@ class TransmittalController extends Controller
             ->whereIn('group_id', $groups)
             ->with('branch')
             ->with('group')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+            ->orderBy($sort, $order)
+            ->paginate($request->get('itemsPerPage'));
 
         $transmittals->transform( function($transmittal) {
             $transmittal->checks = $transmittal->checks()->with('history')->get();

@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/test/{company}', 'TestController@index');
+Route::post('/test/{company}', 'TestController@index');
 
 Route::post('/login', 'AuthController@login');
 Route::post('/password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail');

@@ -38,13 +38,12 @@ class ToolController extends Controller
 
     public function branches()
     {
-        return Branch::get();
+        return Branch::orderBy('id', 'desc')->get();
     }
 
     public function groups()
     {
-        return Group::where('active', 1)
-            ->orderBy('branch_id')->get();
+        return Branch::has('groups')->with('groups')->get();
     }
 
     public function staledChecks(Company $company)
@@ -179,7 +178,7 @@ class ToolController extends Controller
 
     public function branchUsers(Branch $branch)
     {
-        return $branch->users()->where('active', 1)->get();
+        return $branch->users()->orderBy('id', 'desc')->get();
     }
 
     public function groupIncharge(Group $group)

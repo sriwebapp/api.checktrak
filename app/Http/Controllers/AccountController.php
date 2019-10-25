@@ -22,7 +22,7 @@ class AccountController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return $company->accounts;
+        return $company->accounts()->orderBy('id', 'desc')->get();
     }
 
     public function store(Request $request, Company $company)
@@ -33,7 +33,7 @@ class AccountController extends Controller
 
         $request->validate([
             'bank' => 'required|min:2|max:5',
-            'number' => 'required|min:10|unique2:accounts,number,bank,' . $bank,
+            'number' => 'required|min:10|regex:/^[\d -]*$/i|unique2:accounts,number,bank,' . $bank,
             'address' => 'max:191',
             'tel' => /*required*/ 'max:50',
             'email' => /*required*/ 'email|nullable',
@@ -79,7 +79,7 @@ class AccountController extends Controller
 
         $request->validate([
             'bank' => 'required|min:2|max:5',
-            'number' => 'required|min:10',
+            'number' => 'required|regex:/^[\d -]*$/i|min:10',
             'address' => 'max:191',
             'tel' => /*required*/ 'max:50',
             'email' => /*required*/ 'email|nullable',

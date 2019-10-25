@@ -29,12 +29,12 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Company $company)
+    public function index(Request $request, Company $company)
     {
-        $check = Check::find(798);
+        $request->validate([
+            'input' => 'regex:/^[\d -]*$/i'
+        ]);
 
-        $history = $check->history()->orderBy('id', 'desc')->get();
-
-        return json_decode($history[1]->state, true)['received'];
+        return $request;
     }
 }

@@ -20,7 +20,7 @@ class CompanyController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return Company::get();
+        return Company::orderBy('id', 'desc')->get();
     }
 
     public function store(Request $request)
