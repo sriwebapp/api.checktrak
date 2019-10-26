@@ -1,5 +1,5 @@
 <?php
-Route::get('/test/{transmittal}', 'TestController@index');
+// Route::get('/test/{transmittal}', 'TestController@index');
 
 Route::get('/', function () {
     return redirect('/telescope');

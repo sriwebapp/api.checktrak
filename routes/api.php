@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-Route::get('/test/{company}', 'TestController@index');
+Route::post('/test/{company}', 'TestController@index');
 
 Route::post('/login', 'AuthController@login');
 Route::post('/password/email', 'Auth\ForgotPasswordController@sendResetLinkEmail');
@@ -54,6 +54,7 @@ Route::middleware(['auth:api'])->group(function() {
             Route::post('/clear', 'CheckController@clear');
             Route::post('/return', 'CheckController@return');
             Route::post('/cancel', 'CheckController@cancel');
+            Route::post('/stale', 'CheckController@stale');
             Route::post('/undo', 'CheckController@undo');
             Route::get('/{check}', 'CheckController@show');
             Route::patch('/{check}', 'CheckController@edit');
@@ -87,6 +88,7 @@ Route::middleware(['auth:api'])->group(function() {
         Route::get('/transmittals/sent/{company}', 'ToolController@sentTransmittals');
         Route::get('/transmittals/returned/{company}', 'ToolController@returnedTransmittals');
         Route::post('/transmittals/{company}', 'ToolController@transmittals');
+        Route::get('/staled-checks/{company}', 'ToolController@staledChecks');
         Route::get('/checks/{transmittal}', 'ToolController@checks');
     });
 });

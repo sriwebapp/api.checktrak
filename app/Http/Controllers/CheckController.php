@@ -127,11 +127,13 @@ class CheckController extends Controller
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
+        // must be less than or equal 500
+        abort_unless($checks->count() <= 500, 400, "Check limit of 500 exceeded.");
         // check authorization
         $this->authorize('transmit', [Check::class, $company, $checks]);
         // get group
         $group = Group::find($request->get('group_id'));
-        // create transmittal
+        // create transmittals
         $transmittal = Transmittal::create([
             'group_id' => $group->id,
             'branch_id' => $group->branch->id,
@@ -359,6 +361,38 @@ class CheckController extends Controller
         return ['message' => 'Checks cancelled.'];
     }
 
+    public function stale(Request $request, Company $company)
+    {
+        $request->validate([
+            'date' => 'required|date',
+            'checks' => 'array|nullable',
+            'remarks' => 'max:50',
+        ]);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+        // must be greater than zero
+        abort_unless($checks->count(), 400, "No check selected!");
+
+        $this->authorize('stale', [Check::class, $company, $checks]);
+
+        $checks->each( function($check) use ($request) {
+            if (! $check->received) {
+                $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
+                $transmittal->update([
+                    'sent_checks' => $transmittal->sent_checks ? $transmittal->sent_checks - 1 : 0,
+                ]);
+            }
+
+            $check->update([ 'status_id' => 7, 'received' => 1]); // staled
+
+            $this->recordLog($check, 'stl', $request->get('date'), $request->get('remarks'));
+        });
+
+        Log::info($request->user()->name . ' staled checks.');
+
+        return ['message' => 'Checks marked staled.'];
+    }
+
     public function show(Company $company, $id)
     {
         $check = Check::withTrashed()->findOrFail($id);
@@ -421,7 +455,7 @@ class CheckController extends Controller
         // get history
         $history = $check->history()->orderBy('id', 'desc')->get();
         // get state to be restored
-        $restoration_state = $history[0]->action_id === 3? $history[2]: $history[1];
+        $restoration_state = json_decode($history[1]->state, true)['received'] ? $history[1]: $history[2];
         // update check
         $check->update(json_decode($restoration_state->state, true));
         // get last action type

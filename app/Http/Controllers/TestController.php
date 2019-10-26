@@ -31,6 +31,10 @@ class TestController extends Controller
 
     public function index(Company $company)
     {
-        return Action::where('id', '<>', 5)->where('id', '<>', 11)->get();
+        request()->validate([
+            'input' => 'regex:/^[\d -]*$/i'
+        ]);
+
+        return request();
     }
 }
