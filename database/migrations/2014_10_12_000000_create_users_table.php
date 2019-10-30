@@ -22,6 +22,7 @@ class CreateUsersTable extends Migration
             $table->boolean('active')->default(1);
             $table->unsignedBigInteger('access_id');
             $table->unsignedBigInteger('branch_id')->nullable();
+            $table->string('avatar')->default('default.png');
             $table->rememberToken();
             $table->softDeletes();
             $table->timestamps();

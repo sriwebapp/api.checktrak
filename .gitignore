@@ -2,6 +2,8 @@
 /public/hot
 /public/storage
 /public/pdf/transmittal/*.pdf
+/public/images/avatar/*
+!/public/images/avatar/default.png
 /storage/*.key
 /vendor
 .env
