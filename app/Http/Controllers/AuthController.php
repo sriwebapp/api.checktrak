@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Image;
 use App\User;
 use App\Company;
 use Illuminate\Http\Request;
@@ -77,5 +78,22 @@ class AuthController extends Controller
     public function user()
     {
         return Auth::user()->accessibility();
+    }
+
+    public function avatar(Request $request)
+    {
+        $request->validate(['avatar' => 'required|image|max:1999']);
+
+        $avatar = $request->file('avatar');
+
+        $filename = $request->user()->username . '_' . time() . '.' . $avatar->getClientOriginalExtension();
+
+        Image::make($avatar)->fit(300, 300)->save( public_path() . '/images/avatar/' . $filename );
+
+        $request->user()->update(['avatar'=> $filename]);
+
+        Log::info($request->user()->name . ' updated avatar.');
+
+        return ['message' => 'Avatar successfully updated.'];
     }
 }

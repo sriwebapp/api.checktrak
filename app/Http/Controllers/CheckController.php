@@ -33,7 +33,7 @@ class CheckController extends Controller
         }
 
         $groups = Auth::user()->getGroups()->pluck('id');
-        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'updated_at';
         $order = $request->get('sortDesc') ?
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
@@ -405,7 +405,7 @@ class CheckController extends Controller
         $check->branch;
         $check->account;
         $check->transmittals;
-        $check->history = $check->history()->with('action')->with('user')->get();
+        $check->history = $check->history()->with('action')->orderBy('id')->with('user')->get();
 
         return $check;
     }

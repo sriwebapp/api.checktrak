@@ -16,7 +16,7 @@ class StatusData extends Seeder
             ['name' => 'Created', 'color' => 'indigo'],
             ['name' => 'Transmitted', 'color' => 'blue'],
             ['name' => 'Claimed', 'color' => 'purple'],
-            ['name' => 'Returned', 'color' => 'blue-grey'],
+            ['name' => 'Returned', 'color' => 'deep-orange'],
             ['name' => 'Cancelled', 'color' => 'red'],
             ['name' => 'Cleared', 'color' => 'teal'],
             ['name' => 'Staled', 'color' => 'orange'],

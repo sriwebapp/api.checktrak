@@ -17,7 +17,7 @@ class ActionData extends Seeder
             ['name' => 'Transmit', 'code' => 'trm', 'color' => 'blue'],
             ['name' => 'Receive', 'code' => 'rcv', 'color' => 'green'],
             ['name' => 'Claim', 'code' => 'clm', 'color' => 'purple'],
-            ['name' => 'Return', 'code' => 'rtn', 'color' => 'blue-grey'],
+            ['name' => 'Return', 'code' => 'rtn', 'color' => 'deep-orange'],
             ['name' => 'Cancel', 'code' => 'cnl', 'color' => 'red'],
             ['name' => 'Clear', 'code' => 'clr', 'color' => 'teal'],
             ['name' => 'Edit', 'code' => 'edt', 'color' => 'orange'],

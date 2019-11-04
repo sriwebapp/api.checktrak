@@ -22,6 +22,7 @@ Route::get('/tools/companies', 'ToolController@companies');
 Route::middleware(['auth:api'])->group(function() {
     Route::post('/logout', 'AuthController@logout');
     Route::get('/auth', 'AuthController@user');
+    Route::post('/auth/avatar', 'AuthController@avatar');
 
     Route::apiResource('/user', 'UserController');
     Route::post('/user/{user}/access', 'UserController@access');
