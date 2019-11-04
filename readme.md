@@ -1,87 +1,44 @@
-# Check Trak
+### Receiving Transmitted Checks
 
-### User Group Access
+![receive_checks](https://media.giphy.com/media/gFtwWASbiA2xvCsRHJ/giphy.gif)
 
--   System Admin: All Access + Telescope
--   Admin: All Modules, Actions and Branches
--   Head Office: Create, Transmit, Claim, Delete, Edit, Clear and Receive for All Branches, and Payee Module
--   Branch Office: Receive, Claim, Return check for specific Branch
--   Custom: Customized Access
+-   Select `Check MasterList` Menu.
+-   Click `Receive` button.
+-   Select transmittal to be recieve.
+-   Update details `Date`, `Remarks` if necessary.
+-   Click `Select Checks` to toggle check selection.
+-   Select Checks to be receive.
+-   Click `Receive`.
 
-### Modules
+### Claiming Checks
 
--   User Management
--   Company Management
--   Branch Management
--   Account Management
--   Payee Management
--   Check Management
+![claim_checks](https://media.giphy.com/media/VDBLzKXwY3kqm40PCj/giphy.gif)
 
-### Todos Later
+-   Select `Check MasterList` Menu.
+-   Click `Select` button to start selection.
+-   Select Checks to be mark as Claimed.
+-   Click `Claim` button.
+-   Update details `Date`, `Remarks` if necessary.
+-   Click `Select Checks` to toggle check selection if necessary.
+-   Click `Claim`.
 
--   Group policy to block editing higher groups
--   Validation for two rows unique (payee, check) --ok
+### Returning Checks
 
-### Reminders before deployment
+![return_checks](https://media.giphy.com/media/VgZ75sL0yRplrJ1EXG/giphy.gif)
 
--   Record head office first in branches --ok
--   Consider Check receiving by transmittals --ok
--   Modify receiving based on branch if transmitted --ok
+-   Select `Check MasterList` Menu.
+-   Click `Return` button.
+-   Select transmittal to be return.
+-   Update details `Date`, `Remarks` if necessary.
+-   Click `Select Checks` to toggle check selection.
+-   Select Checks to be return.
+-   Click `Return`.
 
-### todo 09-20-2019
-- rename group to access -- ok
-- groups under branches --ok
-- multiple incharge per group --ok
+### Printing Return Transmittal
 
-- check user imports before deleting users --ok
+![print_report](https://media.giphy.com/media/LPxGZu3EVgiiqr0gJ6/giphy.gif)
 
-### importing
-- delete unneccessary columns
-- in excel change format date('MM/DD/Y'), decimals
-- remove empty lines
-- from excel save as csv
-- open notepad save as change to utf8
-
-
-### Todo 09-30-2019
-- import cleared checks -- ok
-- create manual for importing --ok
-- checks filtering --ok
-
-
--- from ui
-
-# Checktrak
-
-## Reminders
-
-- Application Icon --ok
-- Search for modules --ok
-- remove all in pagination options --ok
-- disable changes if no changes happen --ok
-- Username / instead of email --ok
-- Send email after registered --ok
-- Log activities in slack --ok
-- Inactive Log In --ok
-- clear store on logout --ok
-- server side payee datatable/ update --ok
-- add catch in all request --ok
-- remove error in form show (dialogs) --ok
-- multiple incharge user group --ok
-
-## Seeding Data
-
--- todo minimize loading in startup --ok
--- access conditional changing --ok
--- create handler for 503
--- paginate transmittals --ok
--- throttle checks request --ok
--- throttle unauthorized response
--- review cancel condition
--- clearing amount --ok
--- company change route address --ok
-- redirect to 404 once model not found
-- month end/ year end inventory
-- Create toggle for logging ajax error
-- notification
-- clarify cancellation
+-   Select `Check Transmittal` Menu.
+-   Select transmittal to be printed.
+-   Click `Return Report` to view report.
+-   Click printer icon to set up printing.
