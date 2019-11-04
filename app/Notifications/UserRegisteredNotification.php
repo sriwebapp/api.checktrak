@@ -25,12 +25,10 @@ class UserRegisteredNotification extends Notification
     {
         return (new MailMessage)
                     ->subject('Registered User')
-                    ->greeting('Hello ' . $this->user->name . '!')
-                    ->line('You can now access Check Monitoring as ' . $this->user->access->name . '.')
-                    ->line('Username: ' . $this->user->username)
-                    ->line('Password: ' . $this->password)
-                    ->action('Go to App', url(config('app.ui_url')))
-                    ->line('Thank you for using our application!');
+                    ->markdown('email.registered', [
+                        'user' => $this->user,
+                        'password' => $this->password,
+                    ]);
     }
 
     /**

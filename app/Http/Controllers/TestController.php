@@ -29,12 +29,13 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index(Company $company)
+    public function index()
     {
-        request()->validate([
-            'input' => 'regex:/^[\d -]*$/i'
-        ]);
+        $transmittal = Transmittal::first();
+        $user = User::first();
 
-        return request();
+        Notification::send($user, new ChecksTransmittedNotification($transmittal));
+
+        return $user;
     }
 }
