@@ -34,6 +34,7 @@ class PayeeController extends Controller
                     ->orWhere('name', 'like', '%' . $request->get('search') . '%');
             })
             ->orderBy($sort, $order)
+            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
     }
 

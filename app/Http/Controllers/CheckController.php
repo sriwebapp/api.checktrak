@@ -69,6 +69,7 @@ class CheckController extends Controller
             ->with('branch')
             ->with('history')
             ->orderBy($sort, $order)
+            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
     }
 
@@ -193,6 +194,8 @@ class CheckController extends Controller
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
 
+        $unreceivedChecks = $transmittal->checks()->where('received', 0)->get();
+
         $checks = $request->get('selectChecks') ?
             Check::whereIn('id', $request->get('selectedChecks'))->get():
             $transmittal->checks()->where('received', 0)->get();
@@ -213,7 +216,7 @@ class CheckController extends Controller
 
         $recipient = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
 
-        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $request->user()));
+        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $unreceivedChecks, $request->user()));
 
         Log::info($request->user()->name . ' received checks.');
 
@@ -404,7 +407,7 @@ class CheckController extends Controller
         $check->group;
         $check->branch;
         $check->account;
-        $check->transmittals;
+        $check->transmittal = $check->transmittals()->latest()->first();
         $check->history = $check->history()->with('action')->orderBy('id')->with('user')->get();
 
         return $check;

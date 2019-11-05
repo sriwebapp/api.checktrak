@@ -32,10 +32,7 @@ class TestController extends Controller
     public function index()
     {
         $transmittal = Transmittal::first();
-        $user = User::first();
 
-        Notification::send($user, new ChecksTransmittedNotification($transmittal));
-
-        return $user;
+        return $transmittal->checks()->where('received', 0)->count();
     }
 }

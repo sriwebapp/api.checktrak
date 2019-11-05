@@ -49,7 +49,7 @@ class ToolController extends Controller
     public function staledChecks(Company $company)
     {
         return $company->checks()
-            ->where('date', '<=', Carbon::now()->subDays(80)->format('Y-m-d'))
+            ->where('date', '<=', Carbon::now()->subDays(180)->format('Y-m-d'))
             ->whereNotIn('status_id', [5, 6, 7]) /*cancelled, cleared, staled*/
             ->with('status')
             ->with('payee')
