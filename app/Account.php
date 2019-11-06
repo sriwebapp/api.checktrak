@@ -20,4 +20,9 @@ class Account extends Model
     {
         return $this->hasMany(Check::class);
     }
+
+    public function checkBooks()
+    {
+        return $this->hasMany(CheckBook::class);
+    }
 }

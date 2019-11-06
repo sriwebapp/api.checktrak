@@ -149,4 +149,5 @@ return [
 
     "unique2" => 'The :attribute has already been taken.',
     "unique2_not_deleted" => 'The :attribute has already been taken.',
+    "mod" => 'The :attribute must be a valid factor of 100.',
 ];

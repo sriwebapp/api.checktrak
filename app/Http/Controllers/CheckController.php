@@ -82,6 +82,7 @@ class CheckController extends Controller
                 'required',
                 'min:6',
                 'max:10',
+                'regex:/^[\d]*$/i',
                 'unique2NotDeleted:checks,number,account_id,' . $request->get('account_id')
             ],
             'account_id' => ['required', Rule::in($company->accounts()->pluck('id'))],

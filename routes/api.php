@@ -34,6 +34,7 @@ Route::middleware(['auth:api'])->group(function() {
 
     Route::prefix('/{company}')->group( function() {
         Route::apiResource('/account', 'AccountController');
+        Route::apiResource('/check-book', 'CheckBookController');
 
         Route::prefix('/payee')->group( function() {
             Route::post('/', 'PayeeController@index');
