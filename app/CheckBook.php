@@ -43,7 +43,8 @@ class CheckBook extends Model
                 ->with('payee')
                 ->first();
 
-            array_push($checks, ($check ? $check : [ 'number' => $i ]));
+
+            array_push($checks, ($check ? $check : [ 'number' => substr('00000000' . $i, strlen($this->start_series) * -1) ]));
         }
 
         return $checks;
