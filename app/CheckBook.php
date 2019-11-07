@@ -48,9 +48,5 @@ class CheckBook extends Model
         }
 
         return $checks;
-
-        return $this->account->checks()
-            ->whereBetween('number', [$this->start_series, $this->end_series])
-            ->get();
     }
 }
