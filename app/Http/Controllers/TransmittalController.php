@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Excel;
 use App\Company;
 use App\Transmittal;
 use Illuminate\Http\Request;
+use App\Exports\TransmittalExport;
 use Illuminate\Support\Facades\Auth;
 
 class TransmittalController extends Controller
@@ -49,5 +51,10 @@ class TransmittalController extends Controller
             ->get();
 
         return $transmittal;
+    }
+
+    public function export(Transmittal $transmittal)
+    {
+        return Excel::download(new TransmittalExport($transmittal), $transmittal->ref . '.xlsx');
     }
 }

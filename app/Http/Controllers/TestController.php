@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Excel;
 use App\User;
 use App\Check;
 use App\Group;
@@ -14,10 +15,11 @@ use Carbon\Carbon;
 use App\Transmittal;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
+use App\Exports\TransmittalExport;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
-use App\Notifications\TransmittalDueNotification;
 use App\Notifications\ChecksReceivedNotification;
+use App\Notifications\TransmittalDueNotification;
 use App\Notifications\UserRegisteredNotification;
 use App\Notifications\ChecksTransmittedNotification;
 
@@ -32,15 +34,14 @@ class TestController extends Controller
 
     public function index()
     {
-        $transmittals = Transmittal::where('returned_all', 0)
-            ->whereDate('due', Carbon::now()->addDays(1))
-            ->first();
+        $transmittal = Transmittal::find(8);
 
-        $transmittals->each( function($transmittal) {
-            Notification::send($transmittal->inchargeUser, new TransmittalDueNotification($transmittal));
-        });
+        // return $transmittal->checks;
 
+        return Excel::download(new TransmittalExport($transmittal), $transmittal->ref . '.xlsx');
 
-        return $transmittals;
+        $report = new TransmittalExport($transmittal);
+
+        return $report->download('invoices.csv', Excel::CSV, 'text/csv');
     }
 }

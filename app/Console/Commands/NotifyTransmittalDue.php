@@ -6,6 +6,7 @@ use App\User;
 use Carbon\Carbon;
 use App\Transmittal;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use App\Notifications\TransmittalDueNotification;
 
@@ -48,6 +49,8 @@ class NotifyTransmittalDue extends Command
 
         $transmittals->each( function($transmittal) {
             Notification::send($transmittal->inchargeUser, new TransmittalDueNotification($transmittal));
+
+            Log::info('Transmittal due notification sent to ' . $transmittal->inchargeUser->email . '.');
         });
     }
 }

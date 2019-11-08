@@ -13,3 +13,4 @@ Auth::routes([
     'verify' => false, // Email Verification Routes...
 ]);
 
+Route::get('/transmittal/{transmittal}/export', 'TransmittalController@export');
