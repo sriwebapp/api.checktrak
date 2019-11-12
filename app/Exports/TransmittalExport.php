@@ -55,9 +55,9 @@ class TransmittalExport implements FromCollection, WithHeadings, WithTitle, With
     public function columnFormats(): array
     {
         return [
-            'A' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+            'A' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
             'E' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'F' => NumberFormat::FORMAT_DATE_DDMMYYYY,
+            'F' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
         ];
     }
 }
