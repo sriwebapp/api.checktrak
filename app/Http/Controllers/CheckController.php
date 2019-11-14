@@ -28,11 +28,15 @@ class CheckController extends Controller
 {
     public function index(Request $request, Company $company)
     {
-        if ($request->get('filterType') === 3 && $request->get('filterContent')) {
-            $checks = Transmittal::find($request->get('filterContent')['id'])->checks();
+        $filter = $request->get('filter');
+
+        if ( $transmittal = $this->checkFilter($filter, 'transmittal_id') ) {
+            // filter by transmittal
+            $checks = Transmittal::find( $transmittal )->checks();
         } else {
             $checks = $company->checks();
         }
+
 
         $groups = Auth::user()->getGroups()->pluck('id');
         $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'updated_at';
@@ -41,26 +45,37 @@ class CheckController extends Controller
             'desc';
 
         return $checks
-            ->where( function($q) use ($request) {
-                $content = $request->get('filterContent');
+            ->where( function($q) use ($filter) {
+                // filter by account_id
+                if ( $account = $this->checkFilter($filter, 'account_id') ) {
+                    $q->where('account_id', $account );
+                }
+                // filter by payee_id
+                if ( $payee = $this->checkFilter($filter, 'payee_id') ) {
+                    $q->where('payee_id', $payee );
+                }
+                // filter by check number
+                if ( $number = $this->checkFilter($filter, 'number') ) {
+                    $from = $number['from'] < $number['to'] ? $number['from'] : $number['to'];
+                    $to = $number['from'] > $number['to'] ? $number['from'] : $number['to'];
 
-                $accountPayeeFilter = in_array($request->get('filterType'), [1, 2]) && $content;
-                $dateNumberFilter = in_array($request->get('filterType'), [4, 5]) && $content;
-                $detailsFilter = $request->get('filterType') === 6 && $content;
-                $statusFilter = $request->get('filterType') === 7 && $content;
+                    $q->whereBetween('number', [$from, $to]);
+                }
+                // filter by posting date
+                if ( $date = $this->checkFilter($filter, 'date') ) {
+                    $from = $date['from'] < $date['to'] ? $date['from'] : $date['to'];
+                    $to = $date['from'] > $date['to'] ? $date['from'] : $date['to'];
 
-                if ($accountPayeeFilter) {
-                    $q->where($content['column'], $content['id']);
-                } elseif ($dateNumberFilter) {
-                    $from = $content['from'] < $content['to'] ? $content['from'] : $content['to'];
-                    $to = $content['from'] > $content['to'] ? $content['from'] : $content['to'];
-
-                    $q->whereBetween($content['column'], [$from, $to]);
-                } elseif ($detailsFilter) {
-                    $q->where('details', 'like', '%' . $content['searchDetail'] . '%');
-                } elseif ($statusFilter) {
-                    $q->whereIn('status_id', $content['statuses'])
-                        ->where('received', $content['received']);
+                    $q->whereBetween('date', [$from, $to]);
+                }
+                // filter by details
+                if ( $detail = $this->checkFilter($filter, 'detail') ) {
+                    $q->where('details', 'like', '%' . $detail . '%');
+                }
+                // filter by status
+                if ( $status = $this->checkFilter($filter, 'status') ) {
+                    $q->whereIn('status_id', $status['statuses'])
+                        ->where('received', $status['received']);
                 }
             })
             ->whereIn('group_id', $groups)
@@ -528,5 +543,12 @@ class CheckController extends Controller
             'remarks' => $remarks,
             'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
         ]);
+    }
+
+    protected function checkFilter($array, $index)
+    {
+        return array_key_exists($index, $array) && $array[$index] ?
+            $array[$index]:
+            null;
     }
 }
