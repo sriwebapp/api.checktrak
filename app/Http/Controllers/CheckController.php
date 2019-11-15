@@ -133,21 +133,34 @@ class CheckController extends Controller
     public function transmit(Request $request, Company $company)
     {
         ini_set('memory_limit', '2048M');
-        // validate
-        $request->validate([
-            'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
-            'incharge' => 'required|exists:users,id',
-            'date' => 'required|date',
-            'ref' => 'required|unique:transmittals,ref',
-            'series' => 'required',
-            'checks' => 'array|nullable'
-        ]);
 
+        $request->validate([ 'checks' => 'array|nullable' ]);
+        // query checks
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
         // must be less than or equal 500
         abort_unless($checks->count() <= 500, 400, "Check limit of 500 exceeded.");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+        // validate
+        $request->validate([
+            'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
+            'incharge' => 'required|exists:users,id',
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'ref' => 'required|unique:transmittals,ref',
+            'series' => 'required',
+
+        ]);
         // check authorization
         $this->authorize('transmit', [Check::class, $company, $checks]);
         // get group
@@ -203,11 +216,10 @@ class CheckController extends Controller
         ini_set('memory_limit', '2048M');
 
         $request->validate([
-            'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', '<>', 'sent_checks')->pluck('id')) ],
-            'remarks' => 'max:50',
             'selectChecks' => 'required',
             'selectedChecks' => 'array',
+            'remarks' => 'max:50',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
@@ -219,6 +231,21 @@ class CheckController extends Controller
             $transmittal->checks()->where('received', 0)->get();
         // return transmittals even all are claimed
         abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+        ]);
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
@@ -243,15 +270,27 @@ class CheckController extends Controller
 
     public function claim(Request $request, Company $company)
     {
-        $request->validate([
-            'date' => 'required|date|before_or_equal:' . Carbon::now()->format('Y-m-d'),
-            'checks' => 'array|nullable',
-            'remarks' => 'max:50',
-        ]);
+        $request->validate([ 'checks' => 'array|nullable' ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'remarks' => 'max:50',
+        ]);
 
         $this->authorize('claim', [Check::class, $company, $checks]);
 
@@ -268,15 +307,27 @@ class CheckController extends Controller
 
     public function clear(Request $request, Company $company)
     {
-        $request->validate([
-            'check' => 'required',
-            'date' => 'required|date',
-            'amount' => 'required|numeric|gt:0',
-        ]);
+        $request->validate([ 'check' => 'required' ]);
 
-        $check = Check::where('id', $request->get('check'))->firstOrFail();
+        $check = Check::where('id', $request->get('check'))->first();
         // must be greater than zero
         abort_unless($check, 400, "No check selected!");
+
+        $lastAction = $check->history()
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'amount' => 'required|numeric|gt:0',
+        ]);
 
         $this->authorize('clear', [$check, $company]);
 
@@ -304,7 +355,6 @@ class CheckController extends Controller
             })->pluck('id');
 
         $request->validate([
-            'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in($transmittals) ],
             'remarks' => 'max:50',
             'selectChecks' => 'required',
@@ -318,12 +368,27 @@ class CheckController extends Controller
             $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
         // return transmittals even all are claimed
         abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . ($lastAction ? $lastAction->date : $transmittal->date),
+            ]
+        ]);
 
         $this->authorize('return', [Check::class, $checks]);
 
         $returned_all = $checks->count() === $transmittal->checks()->where('status_id', 2)->count();
 
-       $transmittal->update([
+        $transmittal->update([
             'returnedBy_id' => $request->user()->id,
             'returned' => $request->get('date'),
             'sent_checks' => $transmittal->sent_checks - $transmittal->received_checks + $checks->count(),
@@ -359,15 +424,23 @@ class CheckController extends Controller
 
     public function cancel(Request $request, Company $company)
     {
-        $request->validate([
-            'date' => 'required|date',
-            'checks' => 'array|nullable',
-            'remarks' => 'required|max:50',
-        ]);
+        $request->validate([ 'checks' => 'array|nullable' ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))->orderBy('date', 'desc')->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'remarks' => 'required|max:50',
+        ]);
 
         $this->authorize('cancel', [Check::class, $company, $checks]);
 
