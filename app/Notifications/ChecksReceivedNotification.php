@@ -9,13 +9,15 @@ class ChecksReceivedNotification extends Notification
 {
     protected $transmittal;
     protected $user;
-    protected $checks;
+    protected $receivedChecks;
+    protected $unreceivedChecks;
 
-    public function __construct($transmittal, $checks, $user)
+    public function __construct($transmittal, $receivedChecks, $unreceivedChecks, $user)
     {
         $this->transmittal = $transmittal;
         $this->user = $user;
-        $this->checks = $checks;
+        $this->receivedChecks = $receivedChecks;
+        $this->unreceivedChecks = $unreceivedChecks;
     }
 
     /**
@@ -36,7 +38,7 @@ class ChecksReceivedNotification extends Notification
         return (new MailMessage)
                     ->subject('Checks Received')
                     ->greeting('Hello ' . (! $transmittal->returned ? $transmittal->user->name : $transmittal->returnedBy->name) . '!')
-                    ->line($this->checks->count() . ' checks from '.$transmittal->ref . ' already received by ' . $this->user->name . '.')
+                    ->line($this->receivedChecks->count() . '/' . $this->unreceivedChecks->count() . ' checks from '.$transmittal->ref . ' already received by ' . $this->user->name . '.')
                     ->action('Go to App', url(config('app.ui_url')));
     }
 

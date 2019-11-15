@@ -20,6 +20,7 @@ class ModuleData extends Seeder
             ['name' => 'Group', 'code' => 'grp'],
             ['name' => 'Account', 'code' => 'acc'],
             ['name' => 'Payee', 'code' => 'pye'],
+            ['name' => 'Check Book', 'code' => 'cbk'],
         ]);
     }
 }

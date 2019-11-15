@@ -42,5 +42,9 @@ class AppServiceProvider extends ServiceProvider
                 ->where('deleted_at', null)
                 ->count() === 0;
         });
+
+        Validator::extend('mod', function ($attribute, $value, $parameters, $validator) {
+            return intval($value) % $parameters[0] == $parameters[1];
+        });
     }
 }

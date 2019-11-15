@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Excel;
 use App\User;
 use App\Check;
 use App\Group;
@@ -12,6 +13,7 @@ use App\Company;
 use App\History;
 use Carbon\Carbon;
 use App\Transmittal;
+use App\Exports\CheckExport;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -26,11 +28,15 @@ class CheckController extends Controller
 {
     public function index(Request $request, Company $company)
     {
-        if ($request->get('filterType') === 3 && $request->get('filterContent')) {
-            $checks = Transmittal::find($request->get('filterContent')['id'])->checks();
+        $filter = $request->get('filter');
+
+        if ( $transmittal = $this->checkFilter($filter, 'transmittal_id') ) {
+            // filter by transmittal
+            $checks = Transmittal::find( $transmittal )->checks();
         } else {
             $checks = $company->checks();
         }
+
 
         $groups = Auth::user()->getGroups()->pluck('id');
         $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'updated_at';
@@ -39,26 +45,37 @@ class CheckController extends Controller
             'desc';
 
         return $checks
-            ->where( function($q) use ($request) {
-                $content = $request->get('filterContent');
+            ->where( function($q) use ($filter) {
+                // filter by account_id
+                if ( $account = $this->checkFilter($filter, 'account_id') ) {
+                    $q->where('account_id', $account );
+                }
+                // filter by payee_id
+                if ( $payee = $this->checkFilter($filter, 'payee_id') ) {
+                    $q->where('payee_id', $payee );
+                }
+                // filter by check number
+                if ( $number = $this->checkFilter($filter, 'number') ) {
+                    $from = $number['from'] < $number['to'] ? $number['from'] : $number['to'];
+                    $to = $number['from'] > $number['to'] ? $number['from'] : $number['to'];
 
-                $accountPayeeFilter = in_array($request->get('filterType'), [1, 2]) && $content;
-                $dateNumberFilter = in_array($request->get('filterType'), [4, 5]) && $content;
-                $detailsFilter = $request->get('filterType') === 6 && $content;
-                $statusFilter = $request->get('filterType') === 7 && $content;
+                    $q->whereBetween('number', [$from, $to]);
+                }
+                // filter by posting date
+                if ( $date = $this->checkFilter($filter, 'date') ) {
+                    $from = $date['from'] < $date['to'] ? $date['from'] : $date['to'];
+                    $to = $date['from'] > $date['to'] ? $date['from'] : $date['to'];
 
-                if ($accountPayeeFilter) {
-                    $q->where($content['column'], $content['id']);
-                } elseif ($dateNumberFilter) {
-                    $from = $content['from'] < $content['to'] ? $content['from'] : $content['to'];
-                    $to = $content['from'] > $content['to'] ? $content['from'] : $content['to'];
-
-                    $q->whereBetween($content['column'], [$from, $to]);
-                } elseif ($detailsFilter) {
-                    $q->where('details', 'like', '%' . $content['searchDetail'] . '%');
-                } elseif ($statusFilter) {
-                    $q->whereIn('status_id', $content['statuses'])
-                        ->where('received', $content['received']);
+                    $q->whereBetween('date', [$from, $to]);
+                }
+                // filter by details
+                if ( $detail = $this->checkFilter($filter, 'detail') ) {
+                    $q->where('details', 'like', '%' . $detail . '%');
+                }
+                // filter by status
+                if ( $status = $this->checkFilter($filter, 'status') ) {
+                    $q->whereIn('status_id', $status['statuses'])
+                        ->where('received', $status['received']);
                 }
             })
             ->whereIn('group_id', $groups)
@@ -69,6 +86,7 @@ class CheckController extends Controller
             ->with('branch')
             ->with('history')
             ->orderBy($sort, $order)
+            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
     }
 
@@ -81,6 +99,7 @@ class CheckController extends Controller
                 'required',
                 'min:6',
                 'max:10',
+                'regex:/^[\d]*$/i',
                 'unique2NotDeleted:checks,number,account_id,' . $request->get('account_id')
             ],
             'account_id' => ['required', Rule::in($company->accounts()->pluck('id'))],
@@ -114,21 +133,34 @@ class CheckController extends Controller
     public function transmit(Request $request, Company $company)
     {
         ini_set('memory_limit', '2048M');
-        // validate
-        $request->validate([
-            'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
-            'incharge' => 'required|exists:users,id',
-            'date' => 'required|date',
-            'ref' => 'required|unique:transmittals,ref',
-            'series' => 'required',
-            'checks' => 'array|nullable'
-        ]);
 
+        $request->validate([ 'checks' => 'array|nullable' ]);
+        // query checks
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
         // must be less than or equal 500
         abort_unless($checks->count() <= 500, 400, "Check limit of 500 exceeded.");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+        // validate
+        $request->validate([
+            'group_id' => ['required', Rule::in(Group::where('id', '<>', 1)->pluck('id')) ],
+            'incharge' => 'required|exists:users,id',
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'ref' => 'required|unique:transmittals,ref',
+            'series' => 'required',
+
+        ]);
         // check authorization
         $this->authorize('transmit', [Check::class, $company, $checks]);
         // get group
@@ -184,20 +216,36 @@ class CheckController extends Controller
         ini_set('memory_limit', '2048M');
 
         $request->validate([
-            'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in(Transmittal::whereColumn('received_checks', '<>', 'sent_checks')->pluck('id')) ],
-            'remarks' => 'max:50',
             'selectChecks' => 'required',
             'selectedChecks' => 'array',
+            'remarks' => 'max:50',
         ]);
 
         $transmittal = Transmittal::findOrFail($request->get('transmittal_id'));
+
+        $unreceivedChecks = $transmittal->checks()->where('received', 0)->get();
 
         $checks = $request->get('selectChecks') ?
             Check::whereIn('id', $request->get('selectedChecks'))->get():
             $transmittal->checks()->where('received', 0)->get();
         // return transmittals even all are claimed
         abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+        ]);
 
         $this->authorize('receive', [Check::class, $company, $checks]);
 
@@ -213,7 +261,7 @@ class CheckController extends Controller
 
         $recipient = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
 
-        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $request->user()));
+        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $unreceivedChecks, $request->user()));
 
         Log::info($request->user()->name . ' received checks.');
 
@@ -222,15 +270,27 @@ class CheckController extends Controller
 
     public function claim(Request $request, Company $company)
     {
-        $request->validate([
-            'date' => 'required|date|before_or_equal:' . Carbon::now()->format('Y-m-d'),
-            'checks' => 'array|nullable',
-            'remarks' => 'max:50',
-        ]);
+        $request->validate([ 'checks' => 'array|nullable' ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'remarks' => 'max:50',
+        ]);
 
         $this->authorize('claim', [Check::class, $company, $checks]);
 
@@ -247,15 +307,27 @@ class CheckController extends Controller
 
     public function clear(Request $request, Company $company)
     {
-        $request->validate([
-            'check' => 'required',
-            'date' => 'required|date',
-            'amount' => 'required|numeric|gt:0',
-        ]);
+        $request->validate([ 'check' => 'required' ]);
 
-        $check = Check::where('id', $request->get('check'))->firstOrFail();
+        $check = Check::where('id', $request->get('check'))->first();
         // must be greater than zero
         abort_unless($check, 400, "No check selected!");
+
+        $lastAction = $check->history()
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'amount' => 'required|numeric|gt:0',
+        ]);
 
         $this->authorize('clear', [$check, $company]);
 
@@ -283,7 +355,6 @@ class CheckController extends Controller
             })->pluck('id');
 
         $request->validate([
-            'date' => 'required|date',
             'transmittal_id' => [ 'required', Rule::in($transmittals) ],
             'remarks' => 'max:50',
             'selectChecks' => 'required',
@@ -297,12 +368,27 @@ class CheckController extends Controller
             $transmittal->checks()->where('status_id', 2)->get(); /*transmitted*/
         // return transmittals even all are claimed
         abort_if($request->get('selectChecks') && !$checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))
+            ->orderBy('date', 'desc')
+            ->where('active', 1)
+            ->where('action_id', '<>', 11)
+            ->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . ($lastAction ? $lastAction->date : $transmittal->date),
+            ]
+        ]);
 
         $this->authorize('return', [Check::class, $checks]);
 
         $returned_all = $checks->count() === $transmittal->checks()->where('status_id', 2)->count();
 
-       $transmittal->update([
+        $transmittal->update([
             'returnedBy_id' => $request->user()->id,
             'returned' => $request->get('date'),
             'sent_checks' => $transmittal->sent_checks - $transmittal->received_checks + $checks->count(),
@@ -338,15 +424,23 @@ class CheckController extends Controller
 
     public function cancel(Request $request, Company $company)
     {
-        $request->validate([
-            'date' => 'required|date',
-            'checks' => 'array|nullable',
-            'remarks' => 'required|max:50',
-        ]);
+        $request->validate([ 'checks' => 'array|nullable' ]);
 
         $checks = Check::whereIn('id', $request->get('checks'))->get();
         // must be greater than zero
         abort_unless($checks->count(), 400, "No check selected!");
+        // get last action
+        $lastAction = History::whereIn('check_id', $checks->pluck('id'))->orderBy('date', 'desc')->first();
+
+        $request->validate([
+            'date' => [
+                'required',
+                'date',
+                'before_or_equal:' . Carbon::now()->format('Y-m-d'),
+                'after_or_equal:' . $lastAction->date,
+            ],
+            'remarks' => 'required|max:50',
+        ]);
 
         $this->authorize('cancel', [Check::class, $company, $checks]);
 
@@ -404,7 +498,7 @@ class CheckController extends Controller
         $check->group;
         $check->branch;
         $check->account;
-        $check->transmittals;
+        $check->transmittal = $check->transmittals()->latest()->first();
         $check->history = $check->history()->with('action')->orderBy('id')->with('user')->get();
 
         return $check;
@@ -497,6 +591,20 @@ class CheckController extends Controller
 
         return ['message' => 'Check successfully restored to previous state.'];
     }
+
+    public function export(Request $request)
+    {
+        $request->merge([ 'checks' => explode(',', $request->query('checks')) ]);
+
+        $checks = Check::whereIn('id', $request->get('checks'))->get();
+
+        abort_unless($checks->count(), 400, "No check selected!");
+
+        $title = 'check_masterlist_' . Carbon::now()->format('Y-m-d');
+
+        return Excel::download(new CheckExport($checks, $title), $title . '.xlsx');
+    }
+
     // record check log
     protected function recordLog(Check $check, $action, $date, $remarks = null)
     {
@@ -508,5 +616,12 @@ class CheckController extends Controller
             'remarks' => $remarks,
             'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
         ]);
+    }
+
+    protected function checkFilter($array, $index)
+    {
+        return array_key_exists($index, $array) && $array[$index] ?
+            $array[$index]:
+            null;
     }
 }

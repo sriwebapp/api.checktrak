@@ -35,6 +35,13 @@ Route::middleware(['auth:api'])->group(function() {
     Route::prefix('/{company}')->group( function() {
         Route::apiResource('/account', 'AccountController');
 
+        Route::prefix('check-book')->group( function() {
+            Route::post('/', 'CheckBookController@index');
+            Route::post('/create', 'CheckBookController@store');
+            Route::get('/{check_book}', 'CheckBookController@show');
+            Route::delete('/{check_book}', 'CheckBookController@destroy');
+        });
+
         Route::prefix('/payee')->group( function() {
             Route::post('/', 'PayeeController@index');
             Route::post('/create', 'PayeeController@store');

@@ -33,7 +33,7 @@ class AccountController extends Controller
 
         $request->validate([
             'bank' => 'required|min:2|max:5',
-            'number' => 'required|min:10|regex:/^[\d -]*$/i|unique2:accounts,number,bank,' . $bank,
+            'number' => 'required|min:10|regex:/^[\d-]*$/i|unique2:accounts,number,bank,' . $bank,
             'address' => 'max:191',
             'tel' => /*required*/ 'max:50',
             'email' => /*required*/ 'email|nullable',
