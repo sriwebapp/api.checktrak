@@ -19,14 +19,21 @@ class CheckBookController extends Controller
         $this->module = Module::where('code', 'cbk')->first();;
     }
 
-    public function index(Company $company)
+    public function index(Request $request, Company $company)
     {
         $this->authorize('module', $this->module);
 
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
+
+        $order = $request->get('sortDesc') ?
+            ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
+            'desc';
+
         $checkBooks = $company->checkBooks()
             ->with('account')
+            ->orderBy($sort, $order)
             ->orderBy('id', 'desc')
-            ->get();
+            ->paginate($request->get('itemsPerPage'));
 
         $checkBooks->transform( function($checkBook) {
             $checkBook->totalChecks = $checkBook->totalChecks();
