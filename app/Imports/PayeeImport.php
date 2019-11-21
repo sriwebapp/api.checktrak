@@ -61,7 +61,7 @@ class PayeeImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
                     }
                 } elseif ($existing) {
                     $this->handle($row, 2);
