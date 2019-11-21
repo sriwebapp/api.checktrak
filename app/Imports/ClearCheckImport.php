@@ -62,10 +62,10 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (\InvalidArgumentException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e);
+                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
                     }
                 } elseif ($check->status_id === 6) {
                     $this->handle($row, 6);

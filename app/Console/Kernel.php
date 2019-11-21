@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('telescope:prune')
+        $schedule->command('telescope:prune --hours=48')
             ->timezone('Asia/Manila')
             ->dailyAt('00:00');
 
