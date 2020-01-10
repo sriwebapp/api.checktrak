@@ -37,7 +37,6 @@ class CheckController extends Controller
             $checks = $company->checks();
         }
 
-
         $groups = Auth::user()->getGroups()->pluck('id');
         $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'updated_at';
         $order = $request->get('sortDesc') ?

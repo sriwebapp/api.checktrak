@@ -57,14 +57,14 @@ class CheckBookController extends Controller
                 'min:6',
                 'max:10',
                 'regex:/^[\d]*$/i',
-                'mod:100,1',
+                'mod:50,1',
                 'unique2NotDeleted:check_books,start_series,account_id,' . $request->get('account_id')
             ],
             'end_series' => [
                 'required',
                 'regex:/^[\d]*$/i',
                 'digits:' . strlen($request->get('start_series')),
-                'gte:' . (intval($request->get('start_series')) + 99),
+                Rule::in([intval($request->get('start_series')) + 49, intval($request->get('start_series')) + 99]),
             ],
         ]);
 
