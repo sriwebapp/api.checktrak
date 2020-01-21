@@ -71,7 +71,7 @@ class CheckImport implements ToCollection, WithHeadingRow
                             'check_id' => $check->id,
                             'action_id' => 1,
                             'user_id' => auth()->user()->id,
-                            'date' => date('Y-m-d'),
+                            'date' => $check->date,
                             'remarks' => 'Imported',
                             'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
                         ]);

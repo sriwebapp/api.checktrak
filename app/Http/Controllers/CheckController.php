@@ -286,7 +286,8 @@ class CheckController extends Controller
                 'required',
                 'date',
                 'before_or_equal:' . Carbon::now()->format('Y-m-d'),
-                'after_or_equal:' . $lastAction->date,
+                // temporarily disable this validation
+                // 'after_or_equal:' . $lastAction->date,
             ],
             'remarks' => 'max:50',
         ]);
