@@ -121,8 +121,10 @@ class CheckController extends Controller
             'branch_id' => 1, // head office
             'group_id' => 1, // disbursement
         ]);
+        // check if post dated
+        $date = new Carbon($request->get('date')) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $request->get('date');
 
-        $this->recordLog($check, 'crt', $request->get('date'));
+        $this->recordLog($check, 'crt', $date);
 
         Log::info($request->user()->name . ' created new check.');
 
