@@ -67,11 +67,13 @@ class CheckImport implements ToCollection, WithHeadingRow
                             'group_id' => 1, // disbursement
                         ]);
 
+                        $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
+
                         History::create([
                             'check_id' => $check->id,
                             'action_id' => 1,
                             'user_id' => auth()->user()->id,
-                            'date' => $check->date,
+                            'date' => $date,
                             'remarks' => 'Imported',
                             'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
                         ]);
