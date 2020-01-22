@@ -32,16 +32,10 @@ class TestController extends Controller
         $this->module = Module::where('code', 'usr')->first();
     }
 
-    public function index()
+    public function index(Company $company)
     {
-        $transmittal = Transmittal::find(8);
+        // test here
 
-        // return $transmittal->checks;
-
-        return Excel::download(new TransmittalExport($transmittal), $transmittal->ref . '.xlsx');
-
-        $report = new TransmittalExport($transmittal);
-
-        return $report->download('invoices.csv', Excel::CSV, 'text/csv');
+        return 'test route';
     }
 }

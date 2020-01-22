@@ -144,7 +144,7 @@ class CheckController extends Controller
         $lastAction = History::whereIn('check_id', $checks->pluck('id'))
             ->orderBy('date', 'desc')
             ->where('active', 1)
-            ->where('action_id', '<>', 11)
+            ->whereNotIn('action_id', [8, 11])/*edit, undo*/
             ->first();
         // validate
         $request->validate([
@@ -234,7 +234,7 @@ class CheckController extends Controller
         $lastAction = History::whereIn('check_id', $checks->pluck('id'))
             ->orderBy('date', 'desc')
             ->where('active', 1)
-            ->where('action_id', '<>', 11)
+            ->whereNotIn('action_id', [8, 11])/*edit, undo*/
             ->first();
 
         $request->validate([
@@ -278,7 +278,7 @@ class CheckController extends Controller
         $lastAction = History::whereIn('check_id', $checks->pluck('id'))
             ->orderBy('date', 'desc')
             ->where('active', 1)
-            ->where('action_id', '<>', 11)
+            ->whereNotIn('action_id', [8, 11])/*edit, undo*/
             ->first();
 
         $request->validate([
@@ -315,7 +315,7 @@ class CheckController extends Controller
         $lastAction = $check->history()
             ->orderBy('date', 'desc')
             ->where('active', 1)
-            ->where('action_id', '<>', 11)
+            ->whereNotIn('action_id', [8, 11])/*edit, undo*/
             ->first();
 
         $request->validate([
@@ -371,7 +371,7 @@ class CheckController extends Controller
         $lastAction = History::whereIn('check_id', $checks->pluck('id'))
             ->orderBy('date', 'desc')
             ->where('active', 1)
-            ->where('action_id', '<>', 11)
+            ->whereNotIn('action_id', [8, 11])/*edit, undo*/
             ->first();
 
         $request->validate([
