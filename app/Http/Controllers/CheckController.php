@@ -260,9 +260,11 @@ class CheckController extends Controller
             $this->recordLog($check, 'rcv', $request->get('date'), $request->get('remarks'));
         });
 
-        $recipient = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
+        $recipients = Access::find(2)->users; // administrators
+        $sender = ! $transmittal->returned ? $transmittal->user : $transmittal->returnedBy;
+        $recipients->push($sender);
 
-        Notification::send($recipient, new ChecksReceivedNotification($transmittal, $checks, $unreceivedChecks, $request->user()));
+        Notification::send($recipients, new ChecksReceivedNotification($transmittal, $checks, $unreceivedChecks, $request->user()));
 
         Log::info($request->user()->name . ' received checks.');
 
