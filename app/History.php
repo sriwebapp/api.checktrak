@@ -10,6 +10,11 @@ class History extends Model
 
     protected $guarded = [];
 
+    public function check()
+    {
+        return $this->belongsTo(Check::class);
+    }
+
     public function action()
     {
         return $this->belongsTo(Action::class);

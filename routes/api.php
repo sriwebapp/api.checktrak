@@ -69,6 +69,8 @@ Route::middleware(['auth:api'])->group(function() {
             Route::delete('/{check}', 'CheckController@delete');
         });
 
+        Route::patch('/history/{history}', 'HistoryController@update');
+
         Route::prefix('/import')->group( function() {
             Route::post('/check', 'ImportController@check');
             Route::post('/clear-check', 'ImportController@clearCheck');
