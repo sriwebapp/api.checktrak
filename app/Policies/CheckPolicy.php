@@ -153,4 +153,9 @@ class CheckPolicy
 
         return $showable;
     }
+
+    public function updateHistory(User $user, Check $check, Company $company)
+    {
+        return $user->getActions()->where('code', 'und')->count();
+    }
 }

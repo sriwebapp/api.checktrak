@@ -28,7 +28,7 @@ class HistoryController extends Controller
     public function update(Request $request, Company $company, History $history)
     {
         // authorization
-        $this->authorize('undo', [$history->check, $company]);
+        $this->authorize('updateHistory', [$history->check, $company]);
 
         request()->validate([ 'date' => 'required|date' ]);
 
