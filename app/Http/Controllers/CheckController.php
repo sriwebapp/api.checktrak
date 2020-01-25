@@ -9,6 +9,7 @@ use App\Group;
 use App\Access;
 use App\Action;
 use App\Branch;
+use App\Account;
 use App\Company;
 use App\History;
 use Carbon\Carbon;
@@ -107,6 +108,17 @@ class CheckController extends Controller
             'date' => 'required|date',
             'details' => 'max:50'
         ]);
+
+        $checkbook = Account::find(request('account_id'))->checkbooks()
+            ->where('start_series', '<=', request('check_number'))
+            ->where('end_series', '>=', request('check_number'))
+            ->exists();
+
+        if (! $checkbook)
+            return response()->json([
+                    'message' => __('validation.no_check_book'),
+                    'errors' => [ 'check_number' => [__('validation.no_check_book')] ]
+                ], 422);
 
         $check = Check::create([
             'number' => $request->get('check_number'),
