@@ -48,46 +48,55 @@ class CheckImport implements ToCollection, WithHeadingRow
 
 
             if ($payee && $account) {
-                $existing = $account->checks()->where('number', $row['cheque_no'])->first();
+                $checkbook = $account->checkbooks()
+                    ->where('start_series', '<=', $row['cheque_no'])
+                    ->where('end_series', '>=', $row['cheque_no'])
+                    ->exists();
 
-                if(!$existing) {
-                    try {
-                        $check = Check::create([
-                            'number' => trim($row['cheque_no']),
-                            'company_id' => $this->company->id,
-                            'account_id' => $account->id,
-                            'payee_id' => $payee->id,
-                            'import_id' => $this->import->id,
-                            'amount' => trim($row['payment_amt']),
-                            'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
-                            'details' => trim($row['journal_remarks']),
-                            'status_id' => 1, // created
-                            'received' => 1, // received
-                            'branch_id' => 1, // head office
-                            'group_id' => 1, // disbursement
-                        ]);
+                if($checkbook) {
+                    $existing = $account->checks()->where('number', $row['cheque_no'])->first();
 
-                        $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
+                    if(!$existing) {
+                        try {
+                            $check = Check::create([
+                                'number' => trim($row['cheque_no']),
+                                'company_id' => $this->company->id,
+                                'account_id' => $account->id,
+                                'payee_id' => $payee->id,
+                                'import_id' => $this->import->id,
+                                'amount' => trim($row['payment_amt']),
+                                'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
+                                'details' => trim($row['journal_remarks']),
+                                'status_id' => 1, // created
+                                'received' => 1, // received
+                                'branch_id' => 1, // head office
+                                'group_id' => 1, // disbursement
+                            ]);
 
-                        History::create([
-                            'check_id' => $check->id,
-                            'action_id' => 1,
-                            'user_id' => auth()->user()->id,
-                            'date' => $date,
-                            'remarks' => 'Imported',
-                            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
-                        ]);
+                            $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
 
-                        $this->importedRows++;
-                    } catch (\InvalidArgumentException $e) {
-                        $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
-                    } catch (QueryException $e) {
-                        $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+                            History::create([
+                                'check_id' => $check->id,
+                                'action_id' => 1,
+                                'user_id' => auth()->user()->id,
+                                'date' => $date,
+                                'remarks' => 'Imported',
+                                'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
+                            ]);
+
+                            $this->importedRows++;
+                        } catch (\InvalidArgumentException $e) {
+                            $this->handle($row, 1);
+                            Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+                        } catch (QueryException $e) {
+                            $this->handle($row, 1);
+                            Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+                        }
+                    } elseif ($existing) {
+                        $this->handle($row, 2);
                     }
-                } elseif ($existing) {
-                    $this->handle($row, 2);
+                } else {
+                    $this->handle($row, 9);
                 }
             } elseif (!$payee) {
                 $this->handle($row, 3);

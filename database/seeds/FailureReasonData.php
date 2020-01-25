@@ -21,6 +21,7 @@ class FailureReasonData extends Seeder
             ['desc' => 'Already Cleared'],
             ['desc' => 'Not Yet Claimed'],
             ['desc' => 'Not Existing Group'],
+            ['desc' => 'Not Existing Checkbook'],
         ]);
     }
 }
