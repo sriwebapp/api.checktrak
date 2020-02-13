@@ -30,11 +30,11 @@ class PayeeController extends Controller
 
         return $company->payees()->with('group')
             ->where(function ($query) use ($request) {
-                $query->where('code', 'like', '%' . $request->get('search') . '%')
-                    ->orWhere('name', 'like', '%' . $request->get('search') . '%');
+                if ((boolean) $request->get('search'))
+                    $query->where('code', 'like', $request->get('search') . '%')
+                        ->orWhere('name', 'like', $request->get('search') . '%');
             })
             ->orderBy($sort, $order)
-            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
     }
 

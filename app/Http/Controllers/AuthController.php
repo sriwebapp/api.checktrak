@@ -49,7 +49,7 @@ class AuthController extends Controller
 
             return [
                 'token' => json_decode($response->getBody(), true),
-                'company' => Company::find($request->get('company_id'))->id,
+                'company' => request('company_id'),
             ];
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
             $message;
