@@ -7,6 +7,7 @@ use App\Company;
 use App\CheckBook;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,21 +30,35 @@ class CheckBookController extends Controller
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
 
-        $checkBooks = $company->checkBooks()
-            ->with('account')
+        $data = $company->checkbooks()
+            ->select('id')
             ->orderBy($sort, $order)
-            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
 
-        $checkBooks->transform( function($checkBook) {
-            $checkBook->totalChecks = $checkBook->totalChecks();
-            $checkBook->postedChecks = $checkBook->postedChecks();
-            $checkBook->availableChecks = $checkBook->totalChecks() - $checkBook->postedChecks();
+        $checkbooks = CheckBook::select(
+                DB::raw(
+                    'check_books.id,
+                    check_books.account_id,
+                    accounts.code AS account,
+                    check_books.start_series,
+                    check_books.end_series,
+                    check_books.end_series - (check_books.start_series - 1) AS total_checks,
+                    count(checks.id) AS posted_checks,
+                    check_books.end_series - (check_books.start_series - 1) - count(checks.id) AS available_checks'
+                )
+            )
+            ->leftJoin('accounts', 'accounts.id', '=', 'check_books.account_id')
+            ->leftJoin('checks', function($join) {
+                $join->on('checks.account_id', '=', 'accounts.id');
+                $join->on('checks.number', '>=', 'check_books.start_series');
+                $join->on('checks.number', '<=', 'check_books.end_series');
+            })
+            ->whereIn('check_books.id', $data->getCollection()->pluck('id'))
+            ->groupBy('check_books.id')
+            ->orderBy($sort, $order)
+            ->get();
 
-            return $checkBook;
-        });
-
-        return $checkBooks;
+        return $data->setCollection($checkbooks);
     }
 
     public function store(Request $request, Company $company)
@@ -86,7 +101,7 @@ class CheckBookController extends Controller
 
         $checkBook->postedChecks = $checkBook->postedChecks();
         $checkBook->totalChecks = $checkBook->totalChecks();
-        $checkBook->availableChecks = $checkBook->totalChecks() - $checkBook->postedChecks();
+        $checkBook->availableChecks = $checkBook->totalChecks - $checkBook->postedChecks;
         $checkBook->checks = $checkBook->checks();
         $checkBook->account;
 
@@ -101,6 +116,8 @@ class CheckBookController extends Controller
     public function destroy(Company $company, CheckBook $checkBook)
     {
         $this->authorize('module', $this->module);
+
+        abort_if($checkBook->postedChecks(), 400, "Unable to delete: Checkbook has posted checks.");
 
         $checkBook->delete();
 
