@@ -8,6 +8,7 @@ use App\Company;
 use App\PayeeGroup;
 use App\FailureReason;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -25,6 +26,7 @@ class PayeeImport implements ToCollection, WithHeadingRow
     public function __construct(Company $company = null)
     {
         $this->company = $company;
+        $this->reasons = FailureReason::get();
     }
 
     public function collection(Collection $rows)
@@ -44,7 +46,9 @@ class PayeeImport implements ToCollection, WithHeadingRow
             $group = $groups->where('name', $row['group_code'])->first();
 
             if($group) {
-                $existing = $this->company->payees()->where('code', $row['bp_code'])->first();
+                $code = (string) $row['bp_code'];
+
+                $existing = $this->company->payees()->where('code', $code)->first();
 
                 if(!$existing) {
                     try {
@@ -76,13 +80,11 @@ class PayeeImport implements ToCollection, WithHeadingRow
 
     public function handle($row, $reason)
     {
-        $reasons = FailureReason::get();
-
         array_push($this->failedPayees, [
             'name' => trim($row['bp_name']),
             'code' => trim($row['bp_code']),
             'group' => trim($row['group_code']),
-            'reason' => $reasons->find($reason)->desc,
+            'reason' => $this->reasons->find($reason)->desc,
         ]);
 
         $this->failedRows++;
