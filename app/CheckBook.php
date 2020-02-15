@@ -35,18 +35,22 @@ class CheckBook extends Model
 
     public function checks()
     {
+        $postedChecks = $this->account->checks()
+            ->whereBetween('number', [$this->start_series, $this->end_series])
+            ->with('payee')
+            ->get();
+
         $checks = [];
 
         for ($i=$this->start_series; $i <= $this->end_series; $i++) {
-            $check = $this->account->checks()
+            $check = $postedChecks
                 ->where('number', $i)
-                ->with('payee')
                 ->first();
 
 
             array_push($checks, ($check ? $check : [ 'number' => substr('00000000' . $i, strlen($this->start_series) * -1) ]));
         }
 
-        return $checks;
+        return collect($checks);
     }
 }

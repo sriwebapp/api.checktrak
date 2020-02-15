@@ -8,6 +8,7 @@ use App\Company;
 use App\PayeeGroup;
 use App\FailureReason;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -21,10 +22,14 @@ class PayeeImport implements ToCollection, WithHeadingRow
     protected $failedPayees = [];
     protected $successPayees = [];
     protected $import;
+    protected $reasons;
+    protected $alreadyLogged = false;
 
     public function __construct(Company $company = null)
     {
         $this->company = $company;
+        if($company)
+            $this->reasons = FailureReason::get();
     }
 
     public function collection(Collection $rows)
@@ -41,10 +46,10 @@ class PayeeImport implements ToCollection, WithHeadingRow
         $groups = PayeeGroup::get();
 
         $rows->each( function($row) use ($groups) {
-            $group = $groups->where('name', $row['group_code'])->first();
+            $group = $groups->where('name', trim($row['group_code']))->first();
 
             if($group) {
-                $existing = $this->company->payees()->where('code', $row['bp_code'])->first();
+                $existing = $this->company->payees()->where('code', trim($row['bp_code']))->first();
 
                 if(!$existing) {
                     try {
@@ -61,7 +66,12 @@ class PayeeImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+
+                        if (! $this->alreadyLogged) {
+                            $this->alreadyLogged = true;
+
+                            Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+                        }
                     }
                 } elseif ($existing) {
                     $this->handle($row, 2);
@@ -76,13 +86,11 @@ class PayeeImport implements ToCollection, WithHeadingRow
 
     public function handle($row, $reason)
     {
-        $reasons = FailureReason::get();
-
         array_push($this->failedPayees, [
             'name' => trim($row['bp_name']),
             'code' => trim($row['bp_code']),
             'group' => trim($row['group_code']),
-            'reason' => $reasons->find($reason)->desc,
+            'reason' => $this->reasons->find($reason)->desc,
         ]);
 
         $this->failedRows++;

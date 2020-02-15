@@ -39,7 +39,7 @@ class CheckController extends Controller
         }
 
         $groups = Auth::user()->getGroups()->pluck('id');
-        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'updated_at';
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
         $order = $request->get('sortDesc') ?
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
@@ -86,7 +86,6 @@ class CheckController extends Controller
             ->with('branch')
             ->with('history')
             ->orderBy($sort, $order)
-            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
     }
 

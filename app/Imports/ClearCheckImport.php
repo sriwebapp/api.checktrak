@@ -21,10 +21,15 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
     protected $failedRows = 0;
     protected $failedChecks = [];
     protected $import;
+    protected $reasons;
+    protected $alreadyLogged = false;
 
     public function __construct(Account $account = null)
     {
         $this->account = $account;
+
+        if ($account)
+            $this->reasons = FailureReason::get();
     }
 
     public function collection(Collection $rows)
@@ -44,6 +49,9 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
             if($check) {
                 if($check->status_id === 3) {
                     try {
+                        // trigger error if date is in invalid format
+                        $date = Carbon::createFromFormat('m/d/Y', trim($row['date_cleared']))->format('Y-m-d');
+
                         $check->update([
                             'status_id' => 6,
                             'cleared' => $row['amount_cleared'],
@@ -54,7 +62,7 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                             'check_id' => $check->id,
                             'action_id' => 7,
                             'user_id' => auth()->user()->id,
-                            'date' => Carbon::createFromFormat('m/d/Y', trim($row['date_cleared']))->format('Y-m-d'),
+                            'date' => $date,
                             'remarks' => 'Imported',
                             'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
                         ]);
@@ -62,10 +70,12 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (\InvalidArgumentException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+
+                        $this->logError($e->getMessage());
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+
+                        $this->logError($e->getMessage());
                     }
                 } elseif ($check->status_id === 6) {
                     $this->handle($row, 6);
@@ -80,15 +90,23 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
         $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
+     public function logError($message)
+    {
+        if (! $this->alreadyLogged)
+        {
+            $this->alreadyLogged = true;
+
+            Log::error('[' . auth()->user()->username . '] Importing Error:' . $message);
+        }
+    }
+
     public function handle($row, $reason)
     {
-        $reasons = FailureReason::get();
-
         array_push($this->failedChecks, [
             'number' => trim($row['check_number']),
             'date' => trim($row['date_cleared']),
             'cleared' => trim($row['amount_cleared']),
-            'reason' => $reasons->find($reason)->desc,
+            'reason' => $this->reasons->find($reason)->desc,
         ]);
 
         $this->failedRows++;

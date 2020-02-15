@@ -26,7 +26,6 @@ class TransmittalController extends Controller
             ->with('branch')
             ->with('group')
             ->orderBy($sort, $order)
-            ->orderBy('id', 'desc')
             ->paginate($request->get('itemsPerPage'));
 
         $transmittals->transform( function($transmittal) {
