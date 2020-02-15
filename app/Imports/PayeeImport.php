@@ -22,11 +22,14 @@ class PayeeImport implements ToCollection, WithHeadingRow
     protected $failedPayees = [];
     protected $successPayees = [];
     protected $import;
+    protected $reasons;
+    protected $alreadyLogged = false;
 
     public function __construct(Company $company = null)
     {
         $this->company = $company;
-        $this->reasons = FailureReason::get();
+        if($company)
+            $this->reasons = FailureReason::get();
     }
 
     public function collection(Collection $rows)
@@ -43,12 +46,10 @@ class PayeeImport implements ToCollection, WithHeadingRow
         $groups = PayeeGroup::get();
 
         $rows->each( function($row) use ($groups) {
-            $group = $groups->where('name', $row['group_code'])->first();
+            $group = $groups->where('name', trim($row['group_code']))->first();
 
             if($group) {
-                $code = (string) $row['bp_code'];
-
-                $existing = $this->company->payees()->where('code', $code)->first();
+                $existing = $this->company->payees()->where('code', trim($row['bp_code']))->first();
 
                 if(!$existing) {
                     try {
@@ -65,7 +66,12 @@ class PayeeImport implements ToCollection, WithHeadingRow
                         $this->importedRows++;
                     } catch (QueryException $e) {
                         $this->handle($row, 1);
-                        Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+
+                        if (! $this->alreadyLogged) {
+                            $this->alreadyLogged = true;
+
+                            Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
+                        }
                     }
                 } elseif ($existing) {
                     $this->handle($row, 2);

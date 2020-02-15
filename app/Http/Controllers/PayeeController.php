@@ -22,7 +22,7 @@ class PayeeController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'updated_at';
+        $sort = $request->get('sortBy') ? $request->get('sortBy')[0] : 'id';
 
         $order = $request->get('sortDesc') ?
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
