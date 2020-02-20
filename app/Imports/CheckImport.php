@@ -4,6 +4,7 @@ namespace App\Imports;
 
 use App\Check;
 use App\Import;
+use App\Account;
 use App\Company;
 use App\History;
 use App\TempCheck;
@@ -25,7 +26,6 @@ class CheckImport implements ToCollection, WithHeadingRow
     protected $failedChecks = [];
     protected $import;
     protected $accounts;
-    protected $reasons;
     protected $alreadyLogged = false;
 
     public function __construct(Company $company = null)
@@ -33,10 +33,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         $this->company = $company;
 
         if ($company)
-        {
             $this->accounts = $company->accounts;
-            $this->reasons = FailureReason::get();
-        }
     }
 
     public function collection(Collection $rows)
@@ -52,77 +49,90 @@ class CheckImport implements ToCollection, WithHeadingRow
 
 
         $rows->each( function($row) {
-            $account = $this->accounts->where('bank', trim($row['bank_no']))
-                ->where('number', trim($row['account']))->first();
             // check if existing account
-            if (! $account) {
-                $this->handle($row, 4);
-            } else {
-                $payee = $this->company->payees()->where('code', trim($row['bp_code']))->first();
-                // check if existing payee
-                if (! $payee) {
-                    $this->handle($row, 3);
-                } else {
-                    $checkbook = $account->checkbooks()
-                        ->where('start_series', '<=', trim($row['cheque_no']))
-                        ->where('end_series', '>=', trim($row['cheque_no']))
-                        ->first();
-                    // check if exiting checkbook
-                    if (! $checkbook) {
-                        $this->handle($row, 9);
-                    } else {
-                        $existing = $account->checks()->where('number', trim($row['cheque_no']))->first();
-                        // check if existing check
-                        if ($existing) {
-                            $this->handle($row, 2);
-                        } else {
-                            try {
-                                $check = Check::create([
-                                    'number' => trim($row['cheque_no']),
-                                    'company_id' => $this->company->id,
-                                    'account_id' => $account->id,
-                                    'payee_id' => $payee->id,
-                                    'import_id' => $this->import->id,
-                                    'amount' => trim($row['payment_amt']),
-                                    'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
-                                    'details' => trim($row['journal_remarks']),
-                                    'status_id' => 1, // created
-                                    'received' => 1, // received
-                                    'branch_id' => 1, // head office
-                                    'group_id' => 1, // disbursement
-                                ]);
-                                // set date today if post dated check
-                                $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
+            if (! $account = $this->getAccount($row) ) {
+                $this->handle($row, __('message.not_existing.account'));
+                return;
+            }
+            // check if existing payee
+            if (! $payee = $this->getPayee($row) ) {
+                $this->handle($row, __('message.not_existing.payee'));
+                return;
+            }
+            // check if exiting checkbook
+            if (! $checkbook = $this->getCheckBooks($row, $account) ) {
+                $this->handle($row, __('message.not_existing.check_book'));
+                return;
+            }
+            $existing = $account->checks()->where('number', trim($row['cheque_no']))->first();
+            // check if existing check
+            if ($existing) {
+                $this->handle($row, __('message.data.existing'));
+                return;
+            }
 
-                                History::create([
-                                    'check_id' => $check->id,
-                                    'action_id' => 1,
-                                    'user_id' => auth()->user()->id,
-                                    'date' => $date,
-                                    'remarks' => 'Imported',
-                                    'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
-                                ]);
+            try {
+                $check = Check::create([
+                    'number' => trim($row['cheque_no']),
+                    'company_id' => $this->company->id,
+                    'account_id' => $account->id,
+                    'payee_id' => $payee->id,
+                    'import_id' => $this->import->id,
+                    'amount' => trim($row['payment_amt']),
+                    'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
+                    'details' => trim($row['journal_remarks']),
+                    'status_id' => 1, // created
+                    'received' => 1, // received
+                    'branch_id' => 1, // head office
+                    'group_id' => 1, // disbursement
+                ]);
+                // set date today if post dated check
+                $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
 
-                                $this->importedRows++;
-                            } catch (\InvalidArgumentException $e) {
-                                $this->handle($row, 1);
+                History::create([
+                    'check_id' => $check->id,
+                    'action_id' => 1,
+                    'user_id' => auth()->user()->id,
+                    'date' => $date,
+                    'remarks' => 'Imported',
+                    'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
+                ]);
 
-                                $this->logError($e->getMessage());
-                            } catch (QueryException $e) {
-                                $this->handle($row, 1);
+                $this->importedRows++;
+            } catch (\InvalidArgumentException $e) {
+                $this->handle($row, __('message.data.invalid'));
 
-                                $this->logError($e->getMessage());
-                            }
-                        }
-                    }
-                }
+                $this->logError($e->getMessage());
+            } catch (QueryException $e) {
+                $this->handle($row, __('message.data.invalid'));
+
+                $this->logError($e->getMessage());
             }
         });
 
         $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
-    public function logError($message)
+    protected function getAccount(Collection $row)
+    {
+        return $this->accounts->where('bank', trim($row['bank_no']))
+            ->where('number', trim($row['account']))->first();
+    }
+
+    protected function getPayee(Collection $row)
+    {
+        return $this->company->payees()->where('code', trim($row['bp_code']))->first();
+    }
+
+    protected function getCheckBooks(Collection $row, Account $account)
+    {
+        return $account->checkbooks()
+            ->where('start_series', '<=', trim($row['cheque_no']))
+            ->where('end_series', '>=', trim($row['cheque_no']))
+            ->first();
+    }
+
+    protected function logError($message)
     {
         if (! $this->alreadyLogged)
         {
@@ -132,7 +142,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         }
     }
 
-    public function handle($row, $reason)
+    protected function handle($row, $reason)
     {
         array_push($this->failedChecks, [
             'bank' => trim($row['bank_no']),
@@ -143,7 +153,7 @@ class CheckImport implements ToCollection, WithHeadingRow
             'amount' => trim($row['payment_amt']),
             'details' => trim($row['journal_remarks']),
             'date' => trim($row['posting_date']),
-            'reason' => $this->reasons->find($reason)->desc,
+            'reason' => $reason,
         ]);
 
         $this->failedRows++;
