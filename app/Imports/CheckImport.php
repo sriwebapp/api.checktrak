@@ -38,7 +38,7 @@ class CheckImport implements ToCollection, WithHeadingRow
     {
         $this->totalRows = $rows->count();
 
-        $this->import = $this->createImport();
+        $this->createImport();
 
         $rows->each( function($row) {
             // check if existing account
@@ -99,14 +99,14 @@ class CheckImport implements ToCollection, WithHeadingRow
             ->first();
     }
 
-    public function getCheck(Collection $row, Account $account)
+    protected function getCheck(Collection $row, Account $account)
     {
         return $account->checks()->where('number', trim($row['cheque_no']))->first();
     }
 
-    public function createImport()
+    protected function createImport()
     {
-        return Import::create([
+        $this->import = Import::create([
             'company_id' => $this->company->id,
             'user_id' => auth()->user()->id,
             'subject' => 'CreateCheck',
@@ -114,7 +114,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         ]);
     }
 
-    public function createCheck(Collection $row, Account $account, Payee $payee)
+    protected function createCheck(Collection $row, Account $account, Payee $payee)
     {
         $check = Check::create([
             'number' => trim($row['cheque_no']),
@@ -155,7 +155,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         }
     }
 
-    protected function handleError($row, $reason)
+    protected function handleError(Collection $row, $reason)
     {
         array_push($this->failedChecks, [
             'bank' => trim($row['bank_no']),

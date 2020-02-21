@@ -13,7 +13,9 @@ return [
         'existing' => 'Existing Data.',
     ],
     'check' => [
-        'claimed_not' => 'Not Claimed',
-        'cleared' => 'Already Cleared',
+        'cleared' => 'Check Already Cleared',
+        'not' => [
+            'claimed' => 'Check Not Claimed',
+        ],
     ]
 ];

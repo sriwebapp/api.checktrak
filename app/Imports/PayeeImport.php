@@ -36,7 +36,7 @@ class PayeeImport implements ToCollection, WithHeadingRow
     {
         $this->totalRows = $rows->count();
 
-        $this->import = $this->createImport();
+        $this->createImport();
 
         $rows->each( function($row) {
             // check if existing group
@@ -63,19 +63,19 @@ class PayeeImport implements ToCollection, WithHeadingRow
         $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
-    public function getGroup(Collection $row)
+    protected function getGroup(Collection $row)
     {
         return $this->groups->where('name', trim($row['group_code']))->first();
     }
 
-    public function getPayee(Collection $row)
+    protected function getPayee(Collection $row)
     {
         return $this->company->payees()->where('code', trim($row['bp_code']))->first();
     }
 
-    public function createImport()
+    protected function createImport()
     {
-        return Import::create([
+        $this->import = Import::create([
             'company_id' => $this->company->id,
             'user_id' => auth()->user()->id,
             'subject' => 'CreatePayee',
@@ -83,7 +83,7 @@ class PayeeImport implements ToCollection, WithHeadingRow
         ]);
     }
 
-    public function createPayee(Collection $row, PayeeGroup $group)
+    protected function createPayee(Collection $row, PayeeGroup $group)
     {
         $payee = Payee::create([
             'name' => trim($row['bp_name']),
@@ -107,7 +107,7 @@ class PayeeImport implements ToCollection, WithHeadingRow
         }
     }
 
-    public function handleError($row, $reason)
+    protected function handleError(Collection $row, $reason)
     {
         array_push($this->failedPayees, [
             'name' => trim($row['bp_name']),

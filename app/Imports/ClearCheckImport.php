@@ -2,11 +2,12 @@
 
 namespace App\Imports;
 
+use App\Check;
 use App\Import;
 use App\Account;
+use App\Company;
 use App\History;
 use Carbon\Carbon;
-use App\FailureReason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
@@ -16,81 +17,101 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 class ClearCheckImport implements ToCollection, WithHeadingRow
 {
     protected $account;
+    protected $company;
     protected $totalRows;
     protected $importedRows = 0;
     protected $failedRows = 0;
+    protected $successChecks = [];
     protected $failedChecks = [];
     protected $import;
-    protected $reasons;
     protected $alreadyLogged = false;
 
-    public function __construct(Account $account = null)
+    public function __construct(Company $company = null, Account $account = null)
     {
         $this->account = $account;
-
-        if ($account)
-            $this->reasons = FailureReason::get();
+        $this->company = $company;
     }
 
     public function collection(Collection $rows)
     {
         $this->totalRows = $rows->count();
 
-        $this->import = Import::create([
-            'company_id' => $this->account->company->id,
-            'user_id' => auth()->user()->id,
-            'subject' => 'Clear',
-            'total' => $this->totalRows,
-        ]);
+        $this->createImport();
 
         $rows->each( function($row) {
-            $check = $this->account->checks()->where('number', trim($row['check_number']))->first();
+            // check if exiting check
+            if(! $check = $this->getCheck($row)) {
+                $this->handleError($row, __('message.not_existing.check'));
+                return;
+            }
+            // check if already cleared
+            if ($check->inStatus("cleared")) {
+                $this->handleError($row, __('message.check.cleared'));
+                return;
+            }
+            // check if claimed
+            if(! $check->inStatus("claimed") ) {
+                $this->handleError($row, __('message.check.not.claimed'));
+                return;
+            }
 
-            if($check) {
-                if($check->status_id === 3) {
-                    try {
-                        // trigger error if date is in invalid format
-                        $date = Carbon::createFromFormat('m/d/Y', trim($row['date_cleared']))->format('Y-m-d');
+            try {
+                // persist to database
+                $this->clearCheck($row, $check);
+            } catch (\InvalidArgumentException $e) {
+                $this->handleError($row, __('message.data.invalid'));
 
-                        $check->update([
-                            'status_id' => 6,
-                            'cleared' => $row['amount_cleared'],
-                            'import_id' => $this->import->id
-                        ]);
+                $this->logError($e->getMessage());
+            } catch (QueryException $e) {
+                $this->handleError($row, __('message.data.invalid'));
 
-                        History::create([
-                            'check_id' => $check->id,
-                            'action_id' => 7,
-                            'user_id' => auth()->user()->id,
-                            'date' => $date,
-                            'remarks' => 'Imported',
-                            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
-                        ]);
-
-                        $this->importedRows++;
-                    } catch (\InvalidArgumentException $e) {
-                        $this->handle($row, 1);
-
-                        $this->logError($e->getMessage());
-                    } catch (QueryException $e) {
-                        $this->handle($row, 1);
-
-                        $this->logError($e->getMessage());
-                    }
-                } elseif ($check->status_id === 6) {
-                    $this->handle($row, 6);
-                } else {
-                    $this->handle($row, 7);
-                }
-            } elseif (! $check) {
-                $this->handle($row, 5);
+                $this->logError($e->getMessage());
             }
         });
 
         $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
-     public function logError($message)
+    protected function getCheck(Collection $row)
+    {
+        return $this->account->checks()->where('number', trim($row['check_number']))->first();;
+    }
+
+    protected function createImport()
+    {
+        $this->import = Import::create([
+            'company_id' => $this->company->id,
+            'user_id' => auth()->user()->id,
+            'subject' => 'ClearCheck',
+            'total' => $this->totalRows,
+        ]);
+    }
+
+    protected function clearCheck(Collection $row, Check $check)
+    {
+        // trigger error if date is in invalid format
+        $date = Carbon::createFromFormat('m/d/Y', trim($row['date_cleared']))->format('Y-m-d');
+        // update check
+        $check->update([
+            'status_id' => 6,
+            'cleared' => trim($row['amount_cleared']),
+        ]);
+
+        History::create([
+            'check_id' => $check->id,
+            'action_id' => 7,
+            'user_id' => auth()->user()->id,
+            'date' => $date,
+            'remarks' => 'Imported',
+            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
+        ]);
+
+        array_push($this->successChecks, $check->id);
+
+        $this->importedRows++;
+    }
+
+    protected function logError($message)
     {
         if (! $this->alreadyLogged)
         {
@@ -100,13 +121,13 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
         }
     }
 
-    public function handle($row, $reason)
+    protected function handleError(Collection $row, $reason)
     {
         array_push($this->failedChecks, [
             'number' => trim($row['check_number']),
             'date' => trim($row['date_cleared']),
             'cleared' => trim($row['amount_cleared']),
-            'reason' => $this->reasons->find($reason)->desc,
+            'reason' => $reason,
         ]);
 
         $this->failedRows++;
@@ -124,14 +145,14 @@ class ClearCheckImport implements ToCollection, WithHeadingRow
             $response['failedMessage'] = $this->failedRows . ' out of ' . $this->totalRows . ' checks failed importing.';
         }
 
-        $this->import->checks = $this->import->checks()
-            ->with('status')
-            ->with('payee')
-            ->with('account')
-            ->with('group')
-            ->with('branch')
-            ->with('history')
-            ->get();
+        $this->import->checks = Check::whereIn('id', $this->successChecks)
+                ->with('status')
+                ->with('payee')
+                ->with('account')
+                ->with('group')
+                ->with('branch')
+                ->with('history')
+                ->get();
 
         $this->import->failedChecks = $this->failedChecks;
 
