@@ -3,17 +3,15 @@
 namespace App\Imports;
 
 use App\Check;
+use App\Payee;
 use App\Import;
 use App\Account;
 use App\Company;
 use App\History;
-use App\TempCheck;
 use Carbon\Carbon;
-use App\FailureReason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
-use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 
@@ -40,70 +38,39 @@ class CheckImport implements ToCollection, WithHeadingRow
     {
         $this->totalRows = $rows->count();
 
-        $this->import = Import::create([
-            'company_id' => $this->company->id,
-            'user_id' => auth()->user()->id,
-            'subject' => 'Create Check',
-            'total' => $this->totalRows,
-        ]);
-
+        $this->import = $this->createImport();
 
         $rows->each( function($row) {
             // check if existing account
             if (! $account = $this->getAccount($row) ) {
-                $this->handle($row, __('message.not_existing.account'));
+                $this->handleError($row, __('message.not_existing.account'));
                 return;
             }
             // check if existing payee
             if (! $payee = $this->getPayee($row) ) {
-                $this->handle($row, __('message.not_existing.payee'));
+                $this->handleError($row, __('message.not_existing.payee'));
                 return;
             }
-            // check if exiting checkbook
-            if (! $checkbook = $this->getCheckBooks($row, $account) ) {
-                $this->handle($row, __('message.not_existing.check_book'));
+            // check if existing checkbook
+            if (! $this->getCheckBooks($row, $account) ) {
+                $this->handleError($row, __('message.not_existing.check_book'));
                 return;
             }
             // check if existing check
             if ($this->getCheck($row, $account)) {
-                $this->handle($row, __('message.data.existing'));
+                $this->handleError($row, __('message.data.existing'));
                 return;
             }
-            // persist to database
+
             try {
-                $check = Check::create([
-                    'number' => trim($row['cheque_no']),
-                    'company_id' => $this->company->id,
-                    'account_id' => $account->id,
-                    'payee_id' => $payee->id,
-                    'import_id' => $this->import->id,
-                    'amount' => trim($row['payment_amt']),
-                    'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
-                    'details' => trim($row['journal_remarks']),
-                    'status_id' => 1, // created
-                    'received' => 1, // received
-                    'branch_id' => 1, // head office
-                    'group_id' => 1, // disbursement
-                ]);
-                // set date today if post dated check
-                $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
-
-                History::create([
-                    'check_id' => $check->id,
-                    'action_id' => 1,
-                    'user_id' => auth()->user()->id,
-                    'date' => $date,
-                    'remarks' => 'Imported',
-                    'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
-                ]);
-
-                $this->importedRows++;
+                // persist to database
+                $this->createCheck($row, $account, $payee);
             } catch (\InvalidArgumentException $e) {
-                $this->handle($row, __('message.data.invalid'));
+                $this->handleError($row, __('message.data.invalid'));
 
                 $this->logError($e->getMessage());
             } catch (QueryException $e) {
-                $this->handle($row, __('message.data.invalid'));
+                $this->handleError($row, __('message.data.invalid'));
 
                 $this->logError($e->getMessage());
             }
@@ -137,6 +104,47 @@ class CheckImport implements ToCollection, WithHeadingRow
         return $account->checks()->where('number', trim($row['cheque_no']))->first();
     }
 
+    public function createImport()
+    {
+        return Import::create([
+            'company_id' => $this->company->id,
+            'user_id' => auth()->user()->id,
+            'subject' => 'CreateCheck',
+            'total' => $this->totalRows,
+        ]);
+    }
+
+    public function createCheck(Collection $row, Account $account, Payee $payee)
+    {
+        $check = Check::create([
+            'number' => trim($row['cheque_no']),
+            'company_id' => $this->company->id,
+            'account_id' => $account->id,
+            'payee_id' => $payee->id,
+            'import_id' => $this->import->id,
+            'amount' => trim($row['payment_amt']),
+            'date' => Carbon::createFromFormat('m/d/Y', trim($row['posting_date']))->format('Y-m-d'),
+            'details' => trim($row['journal_remarks']),
+            'status_id' => 1, // created
+            'received' => 1, // received
+            'branch_id' => 1, // head office
+            'group_id' => 1, // disbursement
+        ]);
+        // set date today if post dated check
+        $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
+
+        History::create([
+            'check_id' => $check->id,
+            'action_id' => 1,
+            'user_id' => auth()->user()->id,
+            'date' => $date,
+            'remarks' => 'Imported',
+            'state' => json_encode($check->only(['group_id', 'branch_id', 'status_id', 'received', 'details', 'deleted_at']))
+        ]);
+
+        $this->importedRows++;
+    }
+
     protected function logError($message)
     {
         if (! $this->alreadyLogged)
@@ -147,7 +155,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         }
     }
 
-    protected function handle($row, $reason)
+    protected function handleError($row, $reason)
     {
         array_push($this->failedChecks, [
             'bank' => trim($row['bank_no']),
