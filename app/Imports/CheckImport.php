@@ -43,7 +43,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         $this->import = Import::create([
             'company_id' => $this->company->id,
             'user_id' => auth()->user()->id,
-            'subject' => 'Create',
+            'subject' => 'Create Check',
             'total' => $this->totalRows,
         ]);
 
@@ -64,13 +64,12 @@ class CheckImport implements ToCollection, WithHeadingRow
                 $this->handle($row, __('message.not_existing.check_book'));
                 return;
             }
-            $existing = $account->checks()->where('number', trim($row['cheque_no']))->first();
             // check if existing check
-            if ($existing) {
+            if ($this->getCheck($row, $account)) {
                 $this->handle($row, __('message.data.existing'));
                 return;
             }
-
+            // persist to database
             try {
                 $check = Check::create([
                     'number' => trim($row['cheque_no']),
@@ -129,7 +128,13 @@ class CheckImport implements ToCollection, WithHeadingRow
         return $account->checkbooks()
             ->where('start_series', '<=', trim($row['cheque_no']))
             ->where('end_series', '>=', trim($row['cheque_no']))
+            ->whereRaw('length(start_series) = ' . strlen(trim($row['cheque_no'])) )
             ->first();
+    }
+
+    public function getCheck(Collection $row, Account $account)
+    {
+        return $account->checks()->where('number', trim($row['cheque_no']))->first();
     }
 
     protected function logError($message)

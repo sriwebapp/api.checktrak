@@ -52,6 +52,7 @@ class CheckBookController extends Controller
                 $join->on('checks.account_id', '=', 'accounts.id');
                 $join->on('checks.number', '>=', 'check_books.start_series');
                 $join->on('checks.number', '<=', 'check_books.end_series');
+                $join->on(DB::raw('length(checks.number)'), DB::raw('length(check_books.start_series)'));
             })
             ->whereIn('check_books.id', $data->getCollection()->pluck('id'))
             ->groupBy('check_books.id')

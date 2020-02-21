@@ -111,7 +111,8 @@ class CheckController extends Controller
         $checkbook = Account::find(request('account_id'))->checkbooks()
             ->where('start_series', '<=', request('check_number'))
             ->where('end_series', '>=', request('check_number'))
-            ->exists();
+            ->whereRaw('length(start_series) = ' . strlen(request('check_number')))
+            ->count();
 
         if (! $checkbook)
             return response()->json([
