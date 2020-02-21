@@ -23,6 +23,10 @@ class TransmittalController extends Controller
 
         $transmittals = $company->transmittals()
             ->whereIn('group_id', $groups)
+            ->where( function ($query) use ($request) {
+                if ((boolean) $request->get('search'))
+                    $query->where('ref', 'like', $request->get('search') . '%');
+            })
             ->with('branch')
             ->with('group')
             ->orderBy($sort, $order)

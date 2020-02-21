@@ -31,6 +31,11 @@ class CheckBookController extends Controller
             'desc';
 
         $data = $company->checkbooks()
+            ->where(function ($query) use ($request) {
+                if ((boolean) $request->get('search'))
+                    $query->where('start_series', 'like', $request->get('search') . '%')
+                        ->orWhere('end_series', 'like', $request->get('search') . '%');
+            })
             ->select('id')
             ->orderBy($sort, $order)
             ->paginate($request->get('itemsPerPage'));
