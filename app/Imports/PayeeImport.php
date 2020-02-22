@@ -6,7 +6,6 @@ use App\Payee;
 use App\Import;
 use App\Company;
 use App\PayeeGroup;
-use App\FailureReason;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
@@ -22,75 +21,99 @@ class PayeeImport implements ToCollection, WithHeadingRow
     protected $failedPayees = [];
     protected $successPayees = [];
     protected $import;
-    protected $reasons;
+    protected $groups;
     protected $alreadyLogged = false;
 
     public function __construct(Company $company = null)
     {
         $this->company = $company;
+
         if($company)
-            $this->reasons = FailureReason::get();
+            $this->groups = PayeeGroup::get();
     }
 
     public function collection(Collection $rows)
     {
         $this->totalRows = $rows->count();
 
-        $this->import = Import::create([
-            'company_id' => $this->company->id,
-            'user_id' => auth()->user()->id,
-            'subject' => 'CreatePayee',
-            'total' => $this->totalRows,
-        ]);
+        $this->createImport();
 
-        $groups = PayeeGroup::get();
+        $rows->each( function($row) {
+            // check if existing group
+            if(! $group = $this->getGroup($row) ) {
+                $this->handleError($row, __('message.not_existing.group'));
+                return;
+            }
+            // check if existing payee
+            if($this->getPayee($row) ) {
+                $this->handleError($row, __('message.data.existing'));
+                return;
+            }
 
-        $rows->each( function($row) use ($groups) {
-            $group = $groups->where('name', trim($row['group_code']))->first();
+            try {
+                // persist to database
+                $this->createPayee($row, $group);
+            } catch (QueryException $e) {
+                $this->handleError($row, __('message.data.invalid'));
 
-            if($group) {
-                $existing = $this->company->payees()->where('code', trim($row['bp_code']))->first();
-
-                if(!$existing) {
-                    try {
-                        $payee = Payee::create([
-                            'name' => trim($row['bp_name']),
-                            'code' => trim($row['bp_code']),
-                            'company_id' => $this->company->id,
-                            'payee_group_id' => $group->id,
-                        ]);
-
-                        $payee->group;
-                        array_push($this->successPayees, $payee);
-
-                        $this->importedRows++;
-                    } catch (QueryException $e) {
-                        $this->handle($row, 1);
-
-                        if (! $this->alreadyLogged) {
-                            $this->alreadyLogged = true;
-
-                            Log::error('[' . auth()->user()->username . '] Importing Error:' . $e->getMessage());
-                        }
-                    }
-                } elseif ($existing) {
-                    $this->handle($row, 2);
-                }
-            } elseif (!$group) {
-                $this->handle($row, 3);
+                $this->logError($e->getMessage());
             }
         });
 
         $this->import->update(['success' => $this->importedRows, 'failed' => $this->failedRows]);
     }
 
-    public function handle($row, $reason)
+    protected function getGroup(Collection $row)
+    {
+        return $this->groups->where('name', trim($row['group_code']))->first();
+    }
+
+    protected function getPayee(Collection $row)
+    {
+        return $this->company->payees()->where('code', trim($row['bp_code']))->first();
+    }
+
+    protected function createImport()
+    {
+        $this->import = Import::create([
+            'company_id' => $this->company->id,
+            'user_id' => auth()->user()->id,
+            'subject' => 'CreatePayee',
+            'total' => $this->totalRows,
+        ]);
+    }
+
+    protected function createPayee(Collection $row, PayeeGroup $group)
+    {
+        $payee = Payee::create([
+            'name' => trim($row['bp_name']),
+            'code' => trim($row['bp_code']),
+            'company_id' => $this->company->id,
+            'payee_group_id' => $group->id,
+        ]);
+
+        array_push($this->successPayees, $payee->id);
+
+        $this->importedRows++;
+    }
+
+    protected function logError($message)
+    {
+        if (! $this->alreadyLogged)
+        {
+            $this->alreadyLogged = true;
+
+            Log::error('[' . auth()->user()->username . '] Importing Error:' . $message);
+        }
+    }
+
+    protected function handleError(Collection $row, $reason)
     {
         array_push($this->failedPayees, [
             'name' => trim($row['bp_name']),
             'code' => trim($row['bp_code']),
             'group' => trim($row['group_code']),
-            'reason' => $this->reasons->find($reason)->desc,
+            'reason' => $reason,
         ]);
 
         $this->failedRows++;
@@ -109,7 +132,9 @@ class PayeeImport implements ToCollection, WithHeadingRow
         }
 
         $this->import->failedPayees = $this->failedPayees;
-        $this->import->successPayees = $this->successPayees;
+        $this->import->successPayees = Payee::whereIn('id', $this->successPayees)
+                ->with('group')
+                ->get();
 
         $response['import'] = $this->import;
 

@@ -50,4 +50,19 @@ class Check extends Model
     {
         return $this->belongsTo(Status::class);
     }
+
+    public function inStatus($stat)
+    {
+        $stats = [
+            'Created',
+            'Transmitted',
+            'Claimed',
+            'Returned',
+            'Cancelled',
+            'Cleared',
+            'Staled'
+        ];
+
+        return strtolower($stats[$this->status_id - 1]) === strtolower($stat);
+    }
 }

@@ -30,6 +30,7 @@ class CheckBook extends Model
     {
         return $this->account->checks()
             ->whereBetween('number', [$this->start_series, $this->end_series])
+            ->whereRaw('length(number) = ' . strlen($this->start_series) )
             ->count();
     }
 
@@ -37,6 +38,7 @@ class CheckBook extends Model
     {
         $postedChecks = $this->account->checks()
             ->whereBetween('number', [$this->start_series, $this->end_series])
+            ->whereRaw('length(number) = ' . strlen($this->start_series) )
             ->with('payee')
             ->get();
 

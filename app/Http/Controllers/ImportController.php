@@ -64,7 +64,10 @@ class ImportController extends Controller
         abort_unless($completeColumns, 400, 'Importing failed: Some columns are missing.');
         abort_if($clearChecks->count() > 1000, 400, 'Importing failed: Importing limit of 1000 exceeded.');
 
-        \Excel::import($import = new ClearCheckImport(Account::find($request->get('account_id'))), $request->file('clear_checks_file')); //import
+        \Excel::import($import = new ClearCheckImport(
+            $company,
+            Account::find($request->get('account_id'))
+        ), $request->file('clear_checks_file')); //import
 
         Log::info($request->user()->name . ' imported cleared checks.');
 
