@@ -2,16 +2,20 @@
 
 namespace App\Notifications;
 
+use App\Transmittal;
 use Illuminate\Notifications\Notification;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Notifications\Messages\MailMessage;
 
 class ChecksReturnedNotification extends Notification
 {
     protected $transmittal;
+    protected $checks;
 
-    public function __construct($transmittal)
+    public function __construct(Transmittal $transmittal, Collection $checks)
     {
         $this->transmittal = $transmittal;
+        $this->checks = $checks;
     }
 
     public function via($notifiable)
@@ -36,7 +40,7 @@ class ChecksReturnedNotification extends Notification
                     ->line('Date Returned  : ' . \Carbon\Carbon::createFromFormat('Y-m-d', $transmittal->returned)->format('M d, Y'))
                     ->line('Total No of Checks Transmitted : ' . $transmittal->checks->count() )
                     ->line('Total No of Checks Claimed : ' . $claimed->count() )
-                    ->line('Total No of Checks Returned : ' . ($transmittal->checks->count() - $claimed->count()))
+                    ->line('Total No of Checks Returned : ' . $this->checks->count() )
                     ->line('Please see attached for your reference.')
                     ->action('View Attachment', url(config('app.url') . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf'));
     }
