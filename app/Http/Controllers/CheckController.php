@@ -430,7 +430,7 @@ class CheckController extends Controller
         $incharges->push($request->user());
         $recipients = $incharges->merge(Access::find(2)->users); // administrators
 
-        Notification::send($recipients, new ChecksReturnedNotification($transmittal));
+        Notification::send($recipients, new ChecksReturnedNotification($transmittal, $checks));
 
         Log::info($request->user()->name . ' returned checks.');
 
