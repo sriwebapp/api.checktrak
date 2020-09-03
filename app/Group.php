@@ -18,7 +18,7 @@ class Group extends Model
 
     public function incharge()
     {
-        return $this->belongsToMany(User::class, 'group_incharge', 'group_id');
+        return $this->belongsToMany(User::class, 'group_incharge', 'group_id')->where('active', 1);
     }
 
     public function checks()
