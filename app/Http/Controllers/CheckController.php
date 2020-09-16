@@ -599,9 +599,11 @@ class CheckController extends Controller
                 $transmittal->update(['sent_checks' => $transmittal->sent_checks - 1, 'returned_all' => 0,]);
             }
         } elseif ($last_action->action_id === 4/*claim*/) {
-            $transmittal = $check->transmittals()->orderBy('id', 'desc')->first(); /*get transmittal*/
-
-            $transmittal->update(['returned_all' => 0]);
+            if ($check->group_id !== 1 /*disburesement group*/) {
+                if ( $transmittal = $check->transmittals()->orderBy('id', 'desc')->first() /*get transmittal*/) {
+                    $transmittal->update(['returned_all' => 0]);
+                }
+            }
         }
 
         $this->recordLog($check, 'und', date('Y-m-d'), $request->get('remarks'));
