@@ -28,7 +28,7 @@ class ChecksReturnedNotification extends Notification
         $transmittal = $this->transmittal;
         $claimed = $transmittal->checks->filter( function($check) {
             return $check->history->first( function($h) {
-                return $h->action_id === 4;
+                return $h->action_id === 4 && $h->active === 1;;
             });
         });
 
