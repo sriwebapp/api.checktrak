@@ -9,7 +9,6 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
 class CheckExport implements FromCollection, WithHeadings, WithTitle, WithMapping, WithColumnFormatting, ShouldAutoSize
@@ -98,14 +97,14 @@ class CheckExport implements FromCollection, WithHeadings, WithTitle, WithMappin
     public function columnFormats(): array
     {
         return [
-            'C' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'G' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'J' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'K' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'L' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'M' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'N' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'O' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
+            'C' => 'mm/dd/yyyy',
+            'G' => '#,##0.00',
+            'J' => 'mm/dd/yyyy',
+            'K' => 'mm/dd/yyyy',
+            'L' => 'mm/dd/yyyy',
+            'M' => 'mm/dd/yyyy',
+            'N' => 'mm/dd/yyyy',
+            'O' => 'mm/dd/yyyy',
         ];
     }
 }
