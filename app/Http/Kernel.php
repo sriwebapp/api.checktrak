@@ -62,6 +62,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'csrf' => \App\Http\Middleware\VerifyCsrfToken::class,
+        'checkUiRequest' => \App\Http\Middleware\CheckUiRequest::class,
     ];
 
     /**
