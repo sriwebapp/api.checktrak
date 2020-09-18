@@ -90,7 +90,7 @@ class TransmittalExport implements FromCollection, WithHeadings, WithTitle, With
     {
         return [
             'A' => 'mm/dd/yyyy',
-            'E' => '₱#,##0.00',
+            'E' => '#,##0.00',
             'F' => 'mm/dd/yyyy',
         ];
     }

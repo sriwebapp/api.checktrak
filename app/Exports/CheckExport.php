@@ -146,7 +146,7 @@ class CheckExport implements FromCollection, WithHeadings, WithTitle, WithMappin
         return [
             'C' => 'mm/dd/yyyy',
             'E' => '@',
-            'H' => '₱#,##0.00',
+            'H' => '#,##0.00',
             'L' => 'mm/dd/yyyy',
             'M' => 'mm/dd/yyyy',
             'N' => 'mm/dd/yyyy',
@@ -154,7 +154,7 @@ class CheckExport implements FromCollection, WithHeadings, WithTitle, WithMappin
             'P' => '0',
             'Q' => 'mm/dd/yyyy',
             'S' => 'mm/dd/yyyy',
-            'R' => '₱#,##0.00',
+            'R' => '#,##0.00',
             'T' => 'mm/dd/yyyy',
         ];
     }
