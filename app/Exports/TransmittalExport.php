@@ -3,16 +3,18 @@
 namespace App\Exports;
 
 use Carbon\Carbon;
+use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Events\BeforeSheet;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class TransmittalExport implements FromCollection, WithHeadings, WithTitle, WithMapping, WithColumnFormatting, ShouldAutoSize
+class TransmittalExport implements FromCollection, WithHeadings, WithTitle, WithMapping, WithColumnFormatting, ShouldAutoSize, WithEvents
 {
     protected $transmittal;
 
@@ -23,7 +25,15 @@ class TransmittalExport implements FromCollection, WithHeadings, WithTitle, With
 
     public function headings(): array
     {
-        return ['Date', 'Check #', 'Payee Name', 'Details', 'Amount', 'Date Claimed' ];
+        $transmittal = $this->transmittal;
+        return [
+                    ['Reference', $transmittal->ref, '', '', 'Return due', $this->formatDate($transmittal->due)],
+                    ['Transmitted to', $transmittal->inchargeUser->name, '', '', 'Prepared by', $transmittal->user->name],
+                    ['Date Transmitted', $this->formatDate($transmittal->date), '', '', 'No. of Checks', $transmittal->checks->count()],
+                    ['Date Returned', $this->formatDate($transmittal->returned), '', '', 'Total Amount', $transmittal->checks->sum('amount')],
+                    [],
+                    ['Date', 'Check #', 'Payee Name', 'Details', 'Amount', 'Date Claimed' ]
+                ];
     }
 
     public function collection()
@@ -52,12 +62,44 @@ class TransmittalExport implements FromCollection, WithHeadings, WithTitle, With
         ];
     }
 
+    public function registerEvents(): array
+    {
+        return [
+            BeforeSheet::class    => function(BeforeSheet $event) {
+                $event->sheet->getDelegate()->getParent()->getDefaultStyle()->getFont()->setName('Century Gothic')->setSize(10);
+
+                $event->sheet->getDelegate()->getParent()->getActiveSheet()->freezePane('A7');
+            },
+
+            AfterSheet::class    => function(AfterSheet $event) {
+                $event->sheet->getDelegate()->getStyle('A6:W6')->getFont()->setBold('true');
+
+                $event->sheet->getDelegate()->getStyle('A1:F4')->getFont()->setSize(11);
+
+                $event->sheet->getDelegate()->getStyle('B3:B4')->getNumberFormat()->setFormatCode('mmmm dd, yyyy');
+                $event->sheet->getDelegate()->getStyle('F1')->getNumberFormat()->setFormatCode('mmmm dd, yyyy');
+                $event->sheet->getDelegate()->getStyle('F3')->getNumberFormat()->setFormatCode('0');
+                $event->sheet->getDelegate()->getStyle('F4')->getNumberFormat()->setFormatCode('₱#,##0.00');
+                $event->sheet->getDelegate()->getStyle('B1:B4')->getAlignment()->setHorizontal('right');
+                $event->sheet->getDelegate()->getStyle('F1:F4')->getAlignment()->setHorizontal('right');
+            },
+        ];
+    }
+
     public function columnFormats(): array
     {
         return [
-            'A' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
-            'E' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED1,
-            'F' => NumberFormat::FORMAT_DATE_YYYYMMDDSLASH,
+            'A' => 'mm/dd/yyyy',
+            'E' => '₱#,##0.00',
+            'F' => 'mm/dd/yyyy',
         ];
+    }
+
+    protected function formatDate($date)
+    {
+        if(!$date)
+            return '';
+
+        return Date::dateTimeToExcel(new Carbon($date));
     }
 }

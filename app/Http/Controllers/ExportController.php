@@ -29,6 +29,8 @@ class ExportController extends Controller
     {
         $transmittal = Transmittal::findOrFAil($request->get('id'));
 
-        return Excel::download(new TransmittalExport($transmittal), $transmittal->ref . '.xlsx');
+        $title = 'transmittal_' . $transmittal->ref;
+
+        return Excel::download(new TransmittalExport($transmittal), $title . '.xlsx');
     }
 }
