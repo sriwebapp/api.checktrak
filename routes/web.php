@@ -14,4 +14,5 @@ Auth::routes([
 ]);
 
 Route::get('/transmittal/{transmittal}/export', 'TransmittalController@export');
-Route::get('/check/export', 'CheckController@export');
+
+Route::get('/export/check', 'ExportController@check');

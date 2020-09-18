@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Excel;
 use App\User;
 use App\Check;
 use App\Group;
@@ -14,7 +13,6 @@ use App\Company;
 use App\History;
 use Carbon\Carbon;
 use App\Transmittal;
-use App\Exports\CheckExport;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -611,19 +609,6 @@ class CheckController extends Controller
         Log::info($request->user()->name . ' undo check actions.');
 
         return ['message' => 'Check successfully restored to previous state.'];
-    }
-
-    public function export(Request $request)
-    {
-        $request->merge([ 'checks' => explode(',', $request->query('checks')) ]);
-
-        $checks = Check::whereIn('id', $request->get('checks'))->get();
-
-        abort_unless($checks->count(), 400, "No check selected!");
-
-        $title = 'check_masterlist_' . Carbon::now()->format('Y-m-d');
-
-        return Excel::download(new CheckExport($checks, $title), $title . '.xlsx');
     }
 
     // record check log
