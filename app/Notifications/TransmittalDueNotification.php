@@ -30,7 +30,7 @@ class TransmittalDueNotification extends Notification
                     ->subject('Transmittal Due for Return')
                     ->greeting('Hello ' . $transmittal->inchargeUser->name . '!')
                     ->line($transmittal->ref . ' is due for return tomorrow: ' . $due->format('m/d/Y') . '.')
-                    ->action('Go to App', url(config('app.ui_url')))
+                    ->action('Go to App', url(config('app.ui_url') . '/check' ))
                     ->line('Kindly check!');
     }
 

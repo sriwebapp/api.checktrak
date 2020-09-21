@@ -31,8 +31,9 @@ class ChecksTransmittedNotification extends Notification
                         ' and total amount of Php ' . number_format($transmittal->checks->sum('amount'), 2, '.', ',') . '. ' .
                         'Please click here for your reference.'
                     )
-                    ->action('View Attachment', url(config('app.url') . '/pdf/transmittal/' . $transmittal->ref . '.pdf'))
-                    ->line('Kindly check once received.');
+                    ->action('Go To App', url(config('app.ui_url') . '/transmittal/' . $transmittal->id))
+                    ->line('Kindly check once received.')
+                    ->attach(public_path('pdf/transmittal/' . $transmittal->ref . '.pdf'));
     }
 
     /**
