@@ -41,6 +41,7 @@ class AccountController extends Controller
             'designation' => /*required|string*/ 'max:191',
             'fax' => /*required|string*/ 'max:50',
             'purpose' => 'required|string',
+            'reorder_point' => 'required|integer|min:0|max:100',
         ]);
 
         Account::create([
@@ -55,6 +56,7 @@ class AccountController extends Controller
             'designation' => $request->get('designation'),
             'fax' => $request->get('fax'),
             'purpose' => $request->get('purpose'),
+            'reorder_point' => $request->get('reorder_point'),
         ]);
 
         Log::info($request->user()->name . ' created new account.');
@@ -87,6 +89,7 @@ class AccountController extends Controller
             'designation' => /*required|string*/ 'max:191',
             'fax' => /*required|string*/ 'max:50',
             'purpose' => 'required|string',
+            'reorder_point' => 'required|integer|min:0|max:100',
         ]);
 
         $bank = strtoupper($request->get('bank'));
@@ -103,6 +106,7 @@ class AccountController extends Controller
             'fax' => $request->get('fax'),
             'purpose' => $request->get('purpose'),
             'active' => $request->get('active'),
+            'reorder_point' => $request->get('reorder_point'),
         ]);
 
         Log::info($request->user()->name . ' updated an account: ' . $account->code);
