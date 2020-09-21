@@ -41,8 +41,10 @@ class ChecksReturnedNotification extends Notification
                     ->line('Total No of Checks Transmitted : ' . $transmittal->checks->count() )
                     ->line('Total No of Checks Claimed : ' . $claimed->count() )
                     ->line('Total No of Checks Returned : ' . $this->checks->count() )
+                    ->action('Go To App', url(config('app.ui_url') . '/transmittal/' . $transmittal->id))
                     ->line('Please see attached for your reference.')
-                    ->action('View Attachment', url(config('app.url') . '/pdf/transmittal/' . $transmittal->ref . '-1.pdf'));
+                    ->attach(public_path('pdf/transmittal/' . $transmittal->ref . '-1.pdf'));
+
     }
 
     public function toArray($notifiable)
