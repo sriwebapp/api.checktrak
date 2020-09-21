@@ -27,6 +27,7 @@ class TransmittalController extends Controller
             })
             ->with('branch')
             ->with('group')
+            ->with('inchargeUser')
             ->orderBy($sort, $order)
             ->paginate($request->get('itemsPerPage'));
 
