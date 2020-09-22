@@ -25,4 +25,9 @@ class Account extends Model
     {
         return $this->hasMany(CheckBook::class);
     }
+
+    public function availableCheckBooks()
+    {
+        return $this->hasMany(CheckBook::class)->where('available', '>', 0);
+    }
 }

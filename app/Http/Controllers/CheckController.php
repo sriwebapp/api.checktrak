@@ -106,7 +106,7 @@ class CheckController extends Controller
             'details' => 'max:50'
         ]);
 
-        $checkbook = Account::find(request('account_id'))->checkbooks()
+        $checkbook = Account::find(request('account_id'))->availableCheckbooks()
             ->where('start_series', '<=', request('check_number'))
             ->where('end_series', '>=', request('check_number'))
             ->whereRaw('length(start_series) = ' . strlen(request('check_number')))
