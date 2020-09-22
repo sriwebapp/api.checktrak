@@ -1,5 +1,5 @@
 <?php
-// Route::get('/test', 'TestController@index');
+Route::get('/test/{check}', 'TestController@index');
 
 Route::middleware('csrf')->group( function() {
     Route::get('/', function () {

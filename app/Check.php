@@ -51,6 +51,11 @@ class Check extends Model
         return $this->belongsTo(Status::class);
     }
 
+    public function checkBook()
+    {
+        return $this->belongsTo(CheckBook::class);
+    }
+
     public function inStatus($stat)
     {
         $stats = [
