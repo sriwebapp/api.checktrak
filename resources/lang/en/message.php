@@ -6,7 +6,7 @@ return [
         'payee' => 'Not Existing Payee.',
         'check' => 'Not Existing Check.',
         'group' => 'Not Existing Group.',
-        'check_book' => 'Not Existing Check Book.',
+        'check_book' => 'Not Available Check Book.',
     ],
     'data' => [
         'invalid' => 'Invalid Data.',

@@ -93,7 +93,7 @@ class CheckImport implements ToCollection, WithHeadingRow
 
     protected function getCheckBooks(Collection $row, Account $account)
     {
-        return $account->checkbooks()
+        return $account->availableCheckbooks()
             ->where('start_series', '<=', trim($row['cheque_no']))
             ->where('end_series', '>=', trim($row['cheque_no']))
             ->whereRaw('length(start_series) = ' . strlen(trim($row['cheque_no'])) )

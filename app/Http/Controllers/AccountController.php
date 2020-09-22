@@ -22,7 +22,11 @@ class AccountController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        return $company->accounts()->orderBy('id', 'desc')->get();
+        return $company->accounts()->orderBy('id', 'desc')->get()->each(function($account) {
+            $account->available_checkbook = $account->availableCheckBooks()->count();
+            $account->need_reorder = $account->needReorder();
+            $account->last_check = $account->latestCheck();
+        });
     }
 
     public function store(Request $request, Company $company)
