@@ -30,41 +30,15 @@ class CheckBookController extends Controller
             ($request->get('sortDesc')[0] ? 'desc' : 'asc') :
             'desc';
 
-        $data = $company->checkbooks()
+        return $data = $company->checkbooks()
             ->where(function ($query) use ($request) {
                 if ((boolean) $request->get('search'))
                     $query->where('start_series', 'like', $request->get('search') . '%')
                         ->orWhere('end_series', 'like', $request->get('search') . '%');
             })
-            ->select('id')
+            ->with('account')
             ->orderBy($sort, $order)
             ->paginate($request->get('itemsPerPage'));
-
-        $checkbooks = CheckBook::select(
-                DB::raw(
-                    'check_books.id,
-                    check_books.account_id,
-                    accounts.code AS account,
-                    check_books.start_series,
-                    check_books.end_series,
-                    check_books.end_series - (check_books.start_series - 1) AS total_checks,
-                    count(checks.id) AS posted_checks,
-                    check_books.end_series - (check_books.start_series - 1) - count(checks.id) AS available_checks'
-                )
-            )
-            ->leftJoin('accounts', 'accounts.id', '=', 'check_books.account_id')
-            ->leftJoin('checks', function($join) {
-                $join->on('checks.account_id', '=', 'accounts.id');
-                $join->on('checks.number', '>=', 'check_books.start_series');
-                $join->on('checks.number', '<=', 'check_books.end_series');
-                $join->on(DB::raw('length(checks.number)'), DB::raw('length(check_books.start_series)'));
-            })
-            ->whereIn('check_books.id', $data->getCollection()->pluck('id'))
-            ->groupBy('check_books.id')
-            ->orderBy($sort, $order)
-            ->get();
-
-        return $data->setCollection($checkbooks);
     }
 
     public function store(Request $request, Company $company)
@@ -89,11 +63,15 @@ class CheckBookController extends Controller
             ],
         ]);
 
+        $checks = $request->get('end_series') - $request->get('start_series') + 1;
+
         CheckBook::create([
             'company_id' => $company->id,
             'account_id' => $request->get('account_id'),
             'start_series' => $request->get('start_series'),
             'end_series' => $request->get('end_series'),
+            'total' => $checks,
+            'available' => $checks,
         ]);
 
         Log::info($request->user()->name . ' created new check book.');
@@ -105,9 +83,6 @@ class CheckBookController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        $checkBook->postedChecks = $checkBook->postedChecks();
-        $checkBook->totalChecks = $checkBook->totalChecks();
-        $checkBook->availableChecks = $checkBook->totalChecks - $checkBook->postedChecks;
         $checkBook->checks = $checkBook->checks();
         $checkBook->account;
 
@@ -123,7 +98,7 @@ class CheckBookController extends Controller
     {
         $this->authorize('module', $this->module);
 
-        abort_if($checkBook->postedChecks(), 400, "Unable to delete: Checkbook has posted checks.");
+        abort_if($checkBook->postedChecks()->count(), 400, "Unable to delete: Checkbook has posted checks.");
 
         $checkBook->delete();
 

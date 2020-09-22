@@ -132,6 +132,11 @@ class CheckImport implements ToCollection, WithHeadingRow
             'group_id' => 1, // disbursement
             'check_book_id' => $checkbook->id
         ]);
+        // update checkbook
+        $checkbook->update([
+            'posted' => $checkbook->posted + 1,
+            'available' => $checkbook->available - 1,
+        ]);
         // set date today if post dated check
         $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
 
