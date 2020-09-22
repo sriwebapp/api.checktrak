@@ -28,19 +28,17 @@ class CheckBook extends Model
 
     public function postedChecks()
     {
-        return $this->account->checks()
-            ->whereBetween('number', [$this->start_series, $this->end_series])
-            ->whereRaw('length(number) = ' . strlen($this->start_series) )
-            ->count();
+        return $this->hasMany(Check::class);
+    }
+
+    public function postedChecksWithPayee()
+    {
+        return $this->hasMany(Check::class)->with('payee');
     }
 
     public function checks()
     {
-        $postedChecks = $this->account->checks()
-            ->whereBetween('number', [$this->start_series, $this->end_series])
-            ->whereRaw('length(number) = ' . strlen($this->start_series) )
-            ->with('payee')
-            ->get();
+        $postedChecks = $this->postedChecksWithPayee;
 
         $checks = [];
 

@@ -8,6 +8,7 @@ use App\Import;
 use App\Account;
 use App\Company;
 use App\History;
+use App\CheckBook;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
@@ -52,7 +53,7 @@ class CheckImport implements ToCollection, WithHeadingRow
                 return;
             }
             // check if existing checkbook
-            if (! $this->getCheckBooks($row, $account) ) {
+            if (! $checkbook = $this->getCheckBooks($row, $account) ) {
                 $this->handleError($row, __('message.not_existing.check_book'));
                 return;
             }
@@ -64,7 +65,7 @@ class CheckImport implements ToCollection, WithHeadingRow
 
             try {
                 // persist to database
-                $this->createCheck($row, $account, $payee);
+                $this->createCheck($row, $account, $payee, $checkbook);
             } catch (\InvalidArgumentException $e) {
                 $this->handleError($row, __('message.data.invalid'));
 
@@ -114,7 +115,7 @@ class CheckImport implements ToCollection, WithHeadingRow
         ]);
     }
 
-    protected function createCheck(Collection $row, Account $account, Payee $payee)
+    protected function createCheck(Collection $row, Account $account, Payee $payee, CheckBook $checkbook)
     {
         $check = Check::create([
             'number' => trim($row['cheque_no']),
@@ -129,6 +130,12 @@ class CheckImport implements ToCollection, WithHeadingRow
             'received' => 1, // received
             'branch_id' => 1, // head office
             'group_id' => 1, // disbursement
+            'check_book_id' => $checkbook->id
+        ]);
+        // update checkbook
+        $checkbook->update([
+            'posted' => $checkbook->posted + 1,
+            'available' => $checkbook->available - 1,
         ]);
         // set date today if post dated check
         $date = new Carbon($check->date) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $check->date;
@@ -149,7 +156,7 @@ class CheckImport implements ToCollection, WithHeadingRow
     {
         if (! $this->alreadyLogged)
         {
-            $this->alreadyLogged = true;
+            // $this->alreadyLogged = true;
 
             Log::error('[' . auth()->user()->username . '] Importing Error:' . $message);
         }

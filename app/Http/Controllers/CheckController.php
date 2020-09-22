@@ -110,7 +110,7 @@ class CheckController extends Controller
             ->where('start_series', '<=', request('check_number'))
             ->where('end_series', '>=', request('check_number'))
             ->whereRaw('length(start_series) = ' . strlen(request('check_number')))
-            ->count();
+            ->first();
 
         if (! $checkbook)
             return response()->json([
@@ -130,6 +130,12 @@ class CheckController extends Controller
             'received' => 1, // received
             'branch_id' => 1, // head office
             'group_id' => 1, // disbursement
+            'check_book_id' => $checkbook->id
+        ]);
+        // update checkbook
+        $checkbook->update([
+            'posted' => $postedChecks = $checkbook->postedChecks()->count(),
+            'available' => $checkbook->total - $postedChecks,
         ]);
         // check if post dated
         $date = new Carbon($request->get('date')) > new Carbon(date('Y-m-d')) ? date('Y-m-d') : $request->get('date');
@@ -538,7 +544,14 @@ class CheckController extends Controller
 
         $this->authorize('delete', [$check, $company]);
 
+        $checkbook = $check->checkbook;
+
         $check->delete();
+        // update checkbook
+        $checkbook->update([
+            'posted' => $postedChecks = $checkbook->postedChecks()->count(),
+            'available' => $checkbook->total - $postedChecks,
+        ]);
 
         $this->recordLog($check, 'dlt', date('Y-m-d'), $request->get('remarks'));
 
