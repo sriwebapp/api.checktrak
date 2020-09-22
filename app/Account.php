@@ -30,4 +30,14 @@ class Account extends Model
     {
         return $this->hasMany(CheckBook::class)->where('available', '>', 0);
     }
+
+    public function needReorder(): int
+    {
+        return $this->availableCheckBooks()->count() <= $this->reorder_point;
+    }
+
+    public function latestCheck()
+    {
+        return $this->checks()->latest()->first();
+    }
 }
