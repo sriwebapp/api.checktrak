@@ -28,6 +28,11 @@ class Access extends Model
         return $this->belongsToMany(Module::class, 'access_module', 'access_id');
     }
 
+    public function reports()
+    {
+        return $this->belongsToMany(Report::class, 'access_report', 'access_id');
+    }
+
     public function getGroups()
     {
         if ( $this->group === 2 ) {
@@ -52,6 +57,15 @@ class Access extends Model
             return Module::get();
         } elseif ( $this->module === 1 ) {
             return $this->modules;
+        }
+    }
+
+    public function getReports()
+    {
+        if ( $this->report === 2 ) {
+            return Report::get();
+        } elseif ( $this->report === 1 ) {
+            return $this->reports;
         }
     }
 }

@@ -20,16 +20,16 @@ class ExportController extends Controller
 
         abort_unless($checks->count(), 400, "No check selected!");
 
-        $title = 'check_masterlist_' . Carbon::now()->format('Y-m-d');
+        $timestamp = Carbon::now()->format('Y_m_d_His');
 
-        return Excel::download(new CheckExport($checks, $title), $title . '.xlsx');
+        return Excel::download(new CheckExport($checks, $timestamp), 'check_masterlist_' . $timestamp . '.xlsx');
     }
 
     public function transmittal(Request $request)
     {
         $transmittal = Transmittal::findOrFAil($request->get('id'));
 
-        $title = 'transmittal_' . $transmittal->ref;
+        $title = str_replace('-', '_', $transmittal->ref) . '_' . Carbon::now()->format('Y_m_d_His');
 
         return Excel::download(new TransmittalExport($transmittal), $title . '.xlsx');
     }

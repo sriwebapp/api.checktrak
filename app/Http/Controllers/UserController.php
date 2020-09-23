@@ -8,6 +8,7 @@ use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
+use App\Report;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -66,6 +67,7 @@ class UserController extends Controller
         $user->actions;
         $user->modules;
         $user->groups;
+        $user->reports;
 
         return $user;
     }
@@ -118,10 +120,12 @@ class UserController extends Controller
         $actions = ! $access->action ? Action::whereIn('code', $request->get('actions'))->get() : [];
         $groups = ! $access->group ? Group::whereIn('id', $request->get('groups'))->get() : [];
         $modules = ! $access->module ? Module::whereIn('code', $request->get('modules'))->get() : [];
+        $reports = ! $access->report ? Report::whereIn('code', $request->get('reports'))->get() : [];
 
         $user->actions()->sync($actions);
         $user->groups()->sync($groups);
         $user->modules()->sync($modules);
+        $user->reports()->sync($reports);
 
         Log::info($request->user()->name . ' updated a user access: ' . $user->email);
 

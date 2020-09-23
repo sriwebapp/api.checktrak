@@ -8,6 +8,7 @@ use App\Access;
 use App\Action;
 use App\Branch;
 use App\Module;
+use App\Report;
 use App\Status;
 use App\Company;
 use Carbon\Carbon;
@@ -79,12 +80,21 @@ class ToolController extends Controller
 
     public function access()
     {
-        return Access::with('actions')->with('groups')->with('modules')->get();
+        return Access::with('actions')
+            ->with('groups')
+            ->with('modules')
+            ->with('reports')
+            ->get();
     }
 
     public function modules()
     {
         return Module::get();
+    }
+
+    public function reports()
+    {
+        return Report::get();
     }
 
     public function payees(Request $request, Company $company)

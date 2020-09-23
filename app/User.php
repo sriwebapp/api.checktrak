@@ -86,6 +86,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Module::class, 'user_module', 'user_id');
     }
 
+    public function reports()
+    {
+        return $this->belongsToMany(Report::class, 'user_report', 'user_id');
+    }
+
     public function getGroups()
     {
         return $this->access->group ?
@@ -107,12 +112,20 @@ class User extends Authenticatable
             $this->modules;
     }
 
+    public function getReports()
+    {
+        return $this->access->report ?
+            $this->access->getReports() :
+            $this->reports;
+    }
+
     public function accessibility()
     {
         $this->branch;
         $this->groupAccess = $this->getGroups()->pluck('id');
         $this->actionAccess = $this->getActions()->pluck('code');
         $this->moduleAccess = $this->getModules()->pluck('code');
+        $this->reportAccess = $this->getReports()->pluck('code');
 
         return $this;
     }
