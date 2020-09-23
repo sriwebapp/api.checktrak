@@ -21,4 +21,4 @@ Route::prefix('/export')->middleware('checkUiRequest')->group( function() {
     Route::post('/check', 'ExportController@check');
 });
 
-Route::post('/report/masterlist', 'ReportController@masterlist')->middleware('checkUiRequest');
+Route::post('/{company}/report/masterlist', 'ReportController@masterlist')->middleware('checkUiRequest');
