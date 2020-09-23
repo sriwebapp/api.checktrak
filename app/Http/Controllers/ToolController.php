@@ -80,7 +80,11 @@ class ToolController extends Controller
 
     public function access()
     {
-        return Access::with('actions')->with('groups')->with('modules')->get();
+        return Access::with('actions')
+            ->with('groups')
+            ->with('modules')
+            ->with('reports')
+            ->get();
     }
 
     public function modules()

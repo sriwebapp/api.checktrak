@@ -67,6 +67,7 @@ class UserController extends Controller
         $user->actions;
         $user->modules;
         $user->groups;
+        $user->reports;
 
         return $user;
     }
