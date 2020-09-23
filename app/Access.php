@@ -59,4 +59,13 @@ class Access extends Model
             return $this->modules;
         }
     }
+
+    public function getReports()
+    {
+        if ( $this->report === 2 ) {
+            return Report::get();
+        } elseif ( $this->report === 1 ) {
+            return $this->reports;
+        }
+    }
 }
