@@ -28,6 +28,11 @@ class Access extends Model
         return $this->belongsToMany(Module::class, 'access_module', 'access_id');
     }
 
+    public function reports()
+    {
+        return $this->belongsToMany(Report::class, 'access_report', 'access_id');
+    }
+
     public function getGroups()
     {
         if ( $this->group === 2 ) {
