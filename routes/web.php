@@ -15,8 +15,10 @@ Route::middleware('csrf')->group( function() {
     ]);
 });
 
-Route::prefix('/export')->group( function() {
+Route::prefix('/export')->middleware('checkUiRequest')->group( function() {
     Route::post('/transmittal', 'ExportController@transmittal');
 
-    Route::post('/check', 'ExportController@check')->middleware('checkUiRequest');
+    Route::post('/check', 'ExportController@check');
 });
+
+Route::post('/report/masterlist', 'ReportController@masterlist')->middleware('checkUiRequest');
