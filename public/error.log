@@ -1,0 +1,2 @@
+[Thu Sep 24 10:46:25.172334 2020] [php7:error] [pid 12028:tid 1480] [client 127.0.0.1:53762] PHP Fatal error:  Constant expression contains invalid operations in D:\\xampp\\htdocs\\project\\checktrak\\api\\app\\Exports\\MasterlistReport.php on line 23, referer: http://localhost:8000/
+[Thu Sep 24 10:48:30.983313 2020] [php7:error] [pid 12028:tid 1940] [client 127.0.0.1:53796] PHP Fatal error:  Constant expression contains invalid operations in D:\\xampp\\htdocs\\project\\checktrak\\api\\app\\Exports\\MasterlistReport.php on line 23, referer: http://localhost:8000/

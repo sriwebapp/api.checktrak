@@ -18,18 +18,18 @@ class MasterlistReport implements FromCollection, WithHeadings, WithTitle, WithM
 {
     protected $checks;
     protected $title;
-    protected $filters;
+    protected $headers;
 
-    public function __construct($checks, $title, $filters)
+    public function __construct($checks, $title, $headers)
     {
         $this->checks = $checks;
         $this->title = $title;
-        $this->filters = $filters;
+        $this->headers = $headers;
     }
 
     public function headings(): array
     {
-        return $this->filters->map(function($item, $key) {
+        return $this->headers->map(function($item, $key) {
                     return [$key, $item];
                 })
                 ->push([])
@@ -138,7 +138,7 @@ class MasterlistReport implements FromCollection, WithHeadings, WithTitle, WithM
 
     public function registerEvents(): array
     {
-        $start = $this->filters->count() + 2;
+        $start = $this->headers->count() + 2;
 
         return [
             BeforeSheet::class    => function(BeforeSheet $event) use ($start) {
@@ -150,9 +150,9 @@ class MasterlistReport implements FromCollection, WithHeadings, WithTitle, WithM
             AfterSheet::class    => function(AfterSheet $event) use ($start) {
                 $event->sheet->getDelegate()->getStyle('A' . $start . ':W' . $start)->getFont()->setBold('true');
 
-                $event->sheet->getDelegate()->getStyle('A1:B' . $this->filters->count())->getFont()->setSize(10.5);
+                $event->sheet->getDelegate()->getStyle('A1:B' . $this->headers->count())->getFont()->setSize(10.5);
 
-                $event->sheet->getDelegate()->getStyle('B1:B' . $this->filters->count())->getAlignment()->setHorizontal('right');
+                $event->sheet->getDelegate()->getStyle('B1:B' . $this->headers->count())->getAlignment()->setHorizontal('right');
                 $event->sheet->getDelegate()->getStyle('A' . $start . ':E'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
                 $event->sheet->getDelegate()->getStyle('I' . $start . ':I'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
                 $event->sheet->getDelegate()->getStyle('K' . $start . ':S'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
