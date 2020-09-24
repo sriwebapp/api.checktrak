@@ -14,48 +14,50 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 
-class CheckExport implements FromCollection, WithHeadings, WithTitle, WithMapping, WithColumnFormatting, ShouldAutoSize, WithEvents
+class MasterlistReport implements FromCollection, WithHeadings, WithTitle, WithMapping, WithColumnFormatting, ShouldAutoSize, WithEvents
 {
     protected $checks;
     protected $title;
+    protected $headers;
 
-    public function __construct($checks, $title)
+    public function __construct($checks, $title, $headers)
     {
         $this->checks = $checks;
         $this->title = $title;
+        $this->headers = $headers;
     }
 
     public function headings(): array
     {
-        return [
-                [' ', 'Company', $this->checks->first()->company->code],
-                [],
-                [
-                    'Bank',
-                    'Bank Account',
-                    'Check Date',
-                    'Check Number',
-                    'Payee Code',
-                    'Payee Name',
-                    'Details',
-                    'Amount',
-                    'Status',
-                    'Transmittal To',
-                    'Transmittal No.',
-                    'Date Transmitted',
-                    'Transmitted Received',
-                    'Date Due For Return',
-                    'Date Claimed',
-                    'Date Returned',
-                    'Returned Received',
-                    'No. of Days Delayed',
-                    'Date Cleared',
-                    'Amount Cleared',
-                    'Date Staled',
-                    'Date Cancelled',
-                    'Reason for Cancellation',
-                ]
-            ];
+        return $this->headers->map(function($item, $key) {
+                    return [$key, $item];
+                })
+                ->push([])
+                ->push([
+                        'Bank',
+                        'Bank Account',
+                        'Check Date',
+                        'Check Number',
+                        'Payee Code',
+                        'Payee Name',
+                        'Details',
+                        'Amount',
+                        'Status',
+                        'Transmittal To',
+                        'Transmittal No.',
+                        'Date Transmitted',
+                        'Transmitted Received',
+                        'Date Due For Return',
+                        'Date Claimed',
+                        'Date Returned',
+                        'Returned Received',
+                        'No. of Days Delayed',
+                        'Date Cleared',
+                        'Amount Cleared',
+                        'Date Staled',
+                        'Date Cancelled',
+                        'Reason for Cancellation',
+                ])->values()->toArray();
     }
 
     public function collection()
@@ -136,23 +138,25 @@ class CheckExport implements FromCollection, WithHeadings, WithTitle, WithMappin
 
     public function registerEvents(): array
     {
+        $start = $this->headers->count() + 2;
+
         return [
-            BeforeSheet::class    => function(BeforeSheet $event) {
+            BeforeSheet::class    => function(BeforeSheet $event) use ($start) {
                 $event->sheet->getDelegate()->getParent()->getDefaultStyle()->getFont()->setName('Century Gothic')->setSize(10);
 
-                $event->sheet->getDelegate()->getParent()->getActiveSheet()->freezePane('A4');
+                $event->sheet->getDelegate()->getParent()->getActiveSheet()->freezePane('A' . ( $start + 1 ));
             },
 
-            AfterSheet::class    => function(AfterSheet $event) {
-                $event->sheet->getDelegate()->getStyle('A3:W3')->getFont()->setBold('true');
+            AfterSheet::class    => function(AfterSheet $event) use ($start) {
+                $event->sheet->getDelegate()->getStyle('A' . $start . ':W' . $start)->getFont()->setBold('true');
 
-                $event->sheet->getDelegate()->getStyle('B1:C1')->getFont()->setSize(12)->setBold('true');
+                $event->sheet->getDelegate()->getStyle('A1:B' . $this->headers->count())->getFont()->setSize(10.5);
 
-                $event->sheet->getDelegate()->getStyle('C1')->getAlignment()->setHorizontal('right');
-                $event->sheet->getDelegate()->getStyle('A3:E'. ($this->checks->count() + 3))->getAlignment()->setHorizontal('center');
-                $event->sheet->getDelegate()->getStyle('I3:I'. ($this->checks->count() + 3))->getAlignment()->setHorizontal('center');
-                $event->sheet->getDelegate()->getStyle('K3:S'. ($this->checks->count() + 3))->getAlignment()->setHorizontal('center');
-                $event->sheet->getDelegate()->getStyle('U3:V'. ($this->checks->count() + 3))->getAlignment()->setHorizontal('center');
+                $event->sheet->getDelegate()->getStyle('B1:B' . $this->headers->count())->getAlignment()->setHorizontal('right');
+                $event->sheet->getDelegate()->getStyle('A' . $start . ':E'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
+                $event->sheet->getDelegate()->getStyle('I' . $start . ':I'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
+                $event->sheet->getDelegate()->getStyle('K' . $start . ':S'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
+                $event->sheet->getDelegate()->getStyle('U' . $start . ':V'. ($this->checks->count() + $start))->getAlignment()->setHorizontal('center');
             },
         ];
     }

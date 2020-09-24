@@ -74,7 +74,7 @@ class TransmittalExport implements FromCollection, WithHeadings, WithTitle, With
             AfterSheet::class    => function(AfterSheet $event) {
                 $event->sheet->getDelegate()->getStyle('A6:W6')->getFont()->setBold('true');
 
-                $event->sheet->getDelegate()->getStyle('A1:F4')->getFont()->setSize(11);
+                $event->sheet->getDelegate()->getStyle('A1:F4')->getFont()->setSize(10.5);
 
                 $event->sheet->getDelegate()->getStyle('B3:B4')->getNumberFormat()->setFormatCode('mmmm dd, yyyy');
                 $event->sheet->getDelegate()->getStyle('F1')->getNumberFormat()->setFormatCode('mmmm dd, yyyy');
