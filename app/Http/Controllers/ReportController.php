@@ -73,17 +73,12 @@ class ReportController extends Controller
                 }
                 // filter by status
                 if ( $status = $this->checkFilter($filter, 'status') ) {
-                    $q->whereIn('status_id', $status['statuses'])
-                        ->where('received', $status['received']);
+                    $q->whereIn('status_id', $status['statuses']);
                 }
             })
             ->get();
 
         $timestamp = Carbon::now()->format('Y_m_d_His');
-
-        // return collect($this->headers);
-
-        // return collect(array('Company:' => ''));
 
         return Excel::download(new MasterlistReport($checks, $timestamp, collect($this->headers)), 'masterlist_report_' . $timestamp . '.xlsx');
     }
