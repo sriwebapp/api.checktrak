@@ -14,13 +14,30 @@ use Illuminate\Support\Facades\Auth;
 class ReportController extends Controller
 {
     protected $company;
+    protected $limit = 5000;
     protected $headers = [];
 
-    public function masterlist(Request $request, Company $company)
+    public function countMasterlist(Request $request, Company $company)
+    {
+        $check = $this->queryMasterlist($company, $request->get('filter'));
+
+        return ['checks' => $check->count(), 'limit' => $this->limit ];
+    }
+
+    public function generateMasterlist(Request $request, Company $company)
+    {
+        $filter = $this->checkRequest();
+
+        $checks = $this->queryMasterlist($company, $filter, $this->limit, $request->get('batch'));
+
+        $timestamp = Carbon::now()->format('Y_m_d_His');
+
+        return Excel::download(new MasterlistReport($checks, $timestamp, collect($this->headers)), 'masterlist_report_' . $timestamp . '.xlsx');
+    }
+
+    protected function queryMasterlist(Company $company, $filter, $limit = 0, $batch = 0)
     {
         $this->company = $company;
-
-        $filter = $this->checkRequest();
 
         $this->addHeader('Company', $company->name);
 
@@ -75,12 +92,17 @@ class ReportController extends Controller
                 if ( $status = $this->checkFilter($filter, 'status') ) {
                     $q->whereIn('status_id', $status['statuses']);
                 }
-            })
-            ->get();
+            });
 
-        $timestamp = Carbon::now()->format('Y_m_d_His');
-
-        return Excel::download(new MasterlistReport($checks, $timestamp, collect($this->headers)), 'masterlist_report_' . $timestamp . '.xlsx');
+            if($limit) {
+                return $checks
+                    ->skip($limit * ($batch - 1))
+                    ->limit($limit)
+                    ->get();
+            } else {
+                return $checks
+                    ->get();
+            }
     }
 
     protected function checkFilter($array, $index)
