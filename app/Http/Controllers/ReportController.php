@@ -24,6 +24,8 @@ class ReportController extends Controller
     {
         $check = $this->queryMasterlist($company, $request->get('filter'));
 
+        abort_unless($check->count(), 403, 'No checks available for this filter.');
+
         return ['checks' => $check->count(), 'limit' => $this->limit ];
     }
 
