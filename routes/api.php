@@ -105,5 +105,6 @@ Route::middleware(['auth:api'])->group(function() {
         Route::post('/transmittals/{company}', 'ToolController@transmittals');
         Route::get('/staled-checks/{company}', 'ToolController@staledChecks');
         Route::get('/checks/{transmittal}', 'ToolController@checks');
+        Route::get('/{company}/report/masterlist', 'ToolController@masterlistReport');
     });
 });
