@@ -208,6 +208,10 @@ class ToolController extends Controller
     public function masterlistReport(Company $company)
     {
         return  [
+            'accounts' =>  $company->accounts()->where('active', 1)->get(),
+            'payees' => $company->payees()->take(10)->get(),
+            'transmittals' => $company->transmittals()->take(10)->get(),
+            'status' => Status::get(),
             'branches' => Branch::where('active', 1)->get(),
             'groups' => Group::where('active', 1)->get(),
             'users' => User::where('active', 1)->get(),
