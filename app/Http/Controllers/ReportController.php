@@ -49,7 +49,7 @@ class ReportController extends Controller
 
         return $company->checks()
                 ->where( function($q) use ($filter) {
-                // filter by transmittal incharge
+                // filter by transmittal branch
                 if ( $branch_id = $this->checkFilter($filter, 'branch_id') ) {
                     abort_unless($branch = Branch::find( $branch_id ), 403, 'Invalid Branch.');
 
@@ -61,9 +61,11 @@ class ReportController extends Controller
                         ->pluck('checks')->unique()
                         ->flatten()->pluck('id');
 
+                        // dd($check_ids);
+
                     $q->whereIn('id', $check_ids);
                 }
-                // filter by transmittal incharge
+                // filter by transmittal group
                 if ( $group_id = $this->checkFilter($filter, 'group_id') ) {
                     abort_unless($group = Group::find( $group_id ), 403, 'Invalid Group.');
 
