@@ -77,6 +77,10 @@ Route::middleware(['auth:api'])->group(function() {
             Route::post('/payee', 'ImportController@payee');
         });
         Route::apiResource('/import', 'ImportController');
+
+        Route::prefix('/report')->group( function() {
+            Route::post('/masterlist', 'ReportController@countMasterlist');
+        });
     });
 
     Route::prefix('/tools')->group( function() {
@@ -101,5 +105,6 @@ Route::middleware(['auth:api'])->group(function() {
         Route::post('/transmittals/{company}', 'ToolController@transmittals');
         Route::get('/staled-checks/{company}', 'ToolController@staledChecks');
         Route::get('/checks/{transmittal}', 'ToolController@checks');
+        Route::get('/{company}/report/masterlist', 'ToolController@masterlistReport');
     });
 });

@@ -4,39 +4,103 @@ namespace App\Http\Controllers;
 
 use Excel;
 use App\User;
+use App\Group;
+use App\Branch;
 use App\Report;
 use App\Company;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Exports\MasterlistReport;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
     protected $company;
+    protected $limit = 5000;
     protected $headers = [];
 
-    public function masterlist(Request $request, Company $company)
+    public function countMasterlist(Request $request, Company $company)
+    {
+        $check = $this->queryMasterlist($company, $request->get('filter'));
+
+        abort_unless($check->count(), 403, 'No checks available for this filter.');
+
+        return ['checks' => $check->count(), 'limit' => $this->limit ];
+    }
+
+    public function generateMasterlist(Request $request, Company $company)
+    {
+        $filter = $this->checkRequest();
+
+        $checks = $this->queryMasterlist($company, $filter)
+            ->splice($this->limit * ($request->get('batch') - 1), $this->limit);
+
+        $timestamp = Carbon::now()->format('Y_m_d_His');
+
+        return Excel::download(new MasterlistReport($checks, $timestamp, collect($this->headers)), 'masterlist_report_' . $timestamp . '.xlsx');
+    }
+
+    protected function queryMasterlist(Company $company, $filter)
     {
         $this->company = $company;
 
-        $filter = $this->checkRequest();
-
         $this->addHeader('Company', $company->name);
 
-        if ( $transmittal_id = $this->checkFilter($filter, 'transmittal_id') ) {
-            // filter by transmittal
-            abort_unless($transmittal = $company->transmittals()->find( $transmittal_id ), 403, 'Invalid Transmittal.');
+        return $company->checks()
+                ->where( function($q) use ($filter) {
+                // filter by transmittal incharge
+                if ( $branch_id = $this->checkFilter($filter, 'branch_id') ) {
+                    abort_unless($branch = Branch::find( $branch_id ), 403, 'Invalid Branch.');
 
-            $this->addHeader('Transmittal', $transmittal->ref);
+                    $this->addHeader('Branch', $branch->name);
 
-            $checks = $transmittal->checks();
-        } else {
-            $checks = $company->checks();
-        }
+                    $check_ids = $branch->transmittals()
+                        ->where('company_id', $this->company->id)
+                        ->with('checks')->get()
+                        ->pluck('checks')->unique()
+                        ->flatten()->pluck('id');
 
-        $checks = $checks
-            ->where( function($q) use ($filter) {
+                    $q->whereIn('id', $check_ids);
+                }
+                // filter by transmittal incharge
+                if ( $group_id = $this->checkFilter($filter, 'group_id') ) {
+                    abort_unless($group = Group::find( $group_id ), 403, 'Invalid Group.');
+
+                    $this->addHeader('Branch', $group->name);
+
+                    $check_ids = $group->transmittals()
+                        ->where('company_id', $this->company->id)
+                        ->with('checks')->get()
+                        ->pluck('checks')->unique()
+                        ->flatten()->pluck('id');
+
+                    $q->whereIn('id', $check_ids);
+                }
+                // filter by transmittal incharge
+                if ( $incharge_id = $this->checkFilter($filter, 'incharge_id') ) {
+                    abort_unless($incharge = User::find( $incharge_id ), 403, 'Invalid incharge.');
+
+                    $this->addHeader('Incharge', $incharge->name);
+
+                    $check_ids = $incharge->inchargeTransmittals()
+                        ->where('company_id', $this->company->id)
+                        ->with('checks')->get()
+                        ->pluck('checks')->unique()
+                        ->flatten()->pluck('id');
+
+                    $q->whereIn('id', $check_ids);
+                }
+                // filter by transmittal
+                if ( $transmittal_id = $this->checkFilter($filter, 'transmittal_id') ) {
+                    abort_unless($transmittal = $this->company->transmittals()->find( $transmittal_id ), 403, 'Invalid Transmittal.');
+
+                    $this->addHeader('Transmittal', $transmittal->ref);
+
+                    $check_ids = $transmittal->checks()->pluck('checks.id');
+
+                    $q->whereIn('id', $check_ids);
+                }
                 // filter by account_id
                 if ( $account_id = $this->checkFilter($filter, 'account_id') ) {
                     abort_unless($account = $this->company->accounts()->find($account_id), 403, 'Invalid Bank Account.');
@@ -77,10 +141,6 @@ class ReportController extends Controller
                 }
             })
             ->get();
-
-        $timestamp = Carbon::now()->format('Y_m_d_His');
-
-        return Excel::download(new MasterlistReport($checks, $timestamp, collect($this->headers)), 'masterlist_report_' . $timestamp . '.xlsx');
     }
 
     protected function checkFilter($array, $index)

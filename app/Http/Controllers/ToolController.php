@@ -204,4 +204,13 @@ class ToolController extends Controller
             ->take(10)
             ->get();
     }
+
+    public function masterlistReport(Company $company)
+    {
+        return  [
+            'branches' => Branch::where('active', 1)->get(),
+            'groups' => Group::where('active', 1)->get(),
+            'users' => User::where('active', 1)->get(),
+        ];
+    }
 }
